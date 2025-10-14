@@ -138,7 +138,7 @@ zpush() {
   }
 
   # Jalankan git steps
-  git add .zshrc || return 1
+  git add . || return 1
   git commit -m "$1" || return 1
   git push -u origin master
 
