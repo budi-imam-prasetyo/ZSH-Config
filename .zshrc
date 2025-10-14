@@ -140,7 +140,7 @@ zpush() {
   # Jalankan git steps
   git add .zshrc || return 1
   git commit -m "$1" || return 1
-  git push -u origin master || git push -u origin main
+  git push -u origin master
 
   echo "✅ Zshrc pushed successfully!"
 }
