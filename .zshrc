@@ -172,7 +172,7 @@ zpush() {
   # Auto detect main branch
   local main_branch
   main_branch=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | cut -d'/' -f2)
-  main_branch=${main_branch:-main}
+  main_branch=${main_branch:-master}
 
   if ! git push -u origin "$main_branch"; then
     echo "❌ Push gagal"
