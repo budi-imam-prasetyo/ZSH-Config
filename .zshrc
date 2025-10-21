@@ -17,8 +17,8 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 plugins=(
   git
   zsh-autosuggestions
-  zsh-syntax-highlighting
   fzf
+  zsh-syntax-highlighting
 )
 
 #! ----- Load Oh My Zsh -----
@@ -128,12 +128,18 @@ gacp() {
     return 1
   fi
 
-  if ! git push -u origin "$branch"; then
-    echo "❌ Gagal mengirim perubahan. Periksa koneksi internet atau izin repository."
-    return 1
+  echo "🌐 Mengecek koneksi internet..."
+  if ping -c 1 -W 1 github.com &>/dev/null; then
+    echo "✅ Internet terhubung. Mengirim perubahan ke remote..."
+    if ! git push -u origin "$branch"; then
+      echo "❌ Gagal mengirim perubahan. Periksa izin repository atau remote branch."
+      return 1
+    fi
+    echo "🚀 Perubahan berhasil dikirim ke branch \"$branch\"!"
+  else
+    echo "⚠️  Tidak ada koneksi internet."
+    echo "💾 Commit tetap tersimpan di lokal. Jalankan 'git push' nanti saat online."
   fi
-
-  echo "✅ Perubahan berhasil dikirim ke branch \"$branch\"!"
 }
 
 zpush() {
@@ -191,27 +197,3 @@ zpush() {
 #* ==============================================
 
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
-
-#* ==============================================
-#? ZINIT CONFIGURATION - Lazy Load
-#* ==============================================
-
-if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
-  print -P "%F{33} Installing %F{220}Zinit%f..."
-  command mkdir -p "$HOME/.local/share/zinit" && \
-  command git clone https://github.com/zdharma-continuum/zinit "$HOME/.local/share/zinit/zinit.git"
-fi
-
-source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
-autoload -Uz _zinit
-(( ${+_comps} )) && _comps[zinit]=_zinit
-
-#* Lazy load non-critical plugins to improve startup
-zinit wait lucid light-mode for \
-  zdharma-continuum/zinit-annex-as-monitor \
-  zdharma-continuum/zinit-annex-bin-gem-node \
-  zdharma-continuum/zinit-annex-patch-dl \
-  zdharma-continuum/zinit-annex-rust \
-  MichaelAquilina/zsh-you-should-use
-
-export PATH
