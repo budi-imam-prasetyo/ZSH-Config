@@ -77,6 +77,7 @@ alias la='eza -la --icons'
 alias download='cd /home/data/ryoukaii/Downloads/'
 alias zconfig='code ~/.zshrc'
 alias c='clear'
+alias x='exit'
 alias ga='git add .'
 alias serve='php artisan serve'
 alias dev='npm run dev'
@@ -89,55 +90,55 @@ alias ...='cd ../..'
 
 compile() {
   if [ -z "$1" ]; then
-    echo "Usage: compile <path/to/file.c>"
+    echo "⚠️  Penggunaan: compile <path/ke/file.c>"
     return 1
   fi
 
   local output="${1%.c}"
   if gcc "$1" -o "$output"; then
-    echo "✅ Compiled -> $output"
+    echo "✅ Kompilasi berhasil! Menjalankan file → $output"
     "./$output"
   else
-    echo "❌ Compilation failed"
+    echo "❌ Kompilasi gagal. Periksa kembali kode sumbermu."
     return 1
   fi
 }
 
 gacp() {
   if [ -z "$1" ]; then
-    echo "Usage: gacp \"commit message\""
+    echo "⚠️  Penggunaan: gacp \"pesan commit\""
     return 1
   fi
 
   local branch
   branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
   if [ -z "$branch" ]; then
-    echo "❌ Bukan repository git!"
+    echo "❌ Direktori ini bukan repository Git!"
     return 1
   fi
 
-  echo "📦 Commiting to branch: $branch"
+  echo "📦 Melakukan commit ke branch: $branch"
   if ! git add .; then
-    echo "❌ Gagal menjalankan git add"
+    echo "❌ Gagal menambahkan perubahan ke staging area."
     return 1
   fi
 
   if ! git commit -m "$1"; then
-    echo "❌ Commit gagal. Pastikan ada perubahan."
+    echo "❌ Commit gagal. Pastikan ada perubahan sebelum commit."
     return 1
   fi
 
   if ! git push -u origin "$branch"; then
-    echo "❌ Push gagal. Cek koneksi atau permission."
+    echo "❌ Gagal mengirim perubahan. Periksa koneksi internet atau izin repository."
     return 1
   fi
 
-  echo "✅ Changes pushed successfully!"
+  echo "✅ Perubahan berhasil dikirim ke branch \"$branch\"!"
 }
 
 zpush() {
   if [ -z "$1" ]; then
-    echo "Usage: zpush \"commit message\""
+    echo "⚠️  Penggunaan: zpush \"pesan commit\""
     return 1
   fi
 
@@ -146,43 +147,44 @@ zpush() {
   local prev_dir="$PWD"
 
   if [ ! -d "$repo_dir" ]; then
-    echo "❌ Folder dotfiles nggak ketemu di $repo_dir"
+    echo "❌ Folder dotfiles tidak ditemukan di $repo_dir"
     return 1
   fi
 
   cd "$repo_dir" || return 1
   if ! cp "$file" .; then
-    echo "❌ Gagal copy $file"
+    echo "❌ Gagal menyalin file konfigurasi Zsh dari $file"
     cd "$prev_dir"
     return 1
   fi
 
   if ! git add .; then
-    echo "❌ Git add gagal"
+    echo "❌ Gagal menambahkan file ke Git."
     cd "$prev_dir"
     return 1
   fi
 
   if ! git commit -m "$1"; then
-    echo "❌ Commit gagal"
+    echo "❌ Gagal membuat commit. Mungkin tidak ada perubahan."
     cd "$prev_dir"
     return 1
   fi
 
-  # Auto detect main branch
+  # Deteksi branch utama secara otomatis
   local main_branch
   main_branch=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | cut -d'/' -f2)
   main_branch=${main_branch:-master}
 
   if ! git push -u origin "$main_branch"; then
-    echo "❌ Push gagal"
+    echo "❌ Gagal mengirim perubahan ke branch utama ($main_branch)."
     cd "$prev_dir"
     return 1
   fi
 
   cd "$prev_dir"
-  echo "✅ Zshrc pushed successfully!"
+  echo "✅ File .zshrc berhasil diperbarui dan dikirim ke repository!"
 }
+
 
 #* ==============================================
 #? PROMPT CONFIGURATION
