@@ -214,6 +214,51 @@ zpush() {
   echo "✅ File .zshrc berhasil diperbarui dan dikirim ke repository!"
 }
 
+# githack: convert GitHub blob URL -> raw.githack and open it
+githack() {
+  if [[ -z "$1" ]]; then
+    echo "⚠️  Usage: githack <github-blob-url>"
+    return 1
+  fi
+
+  local url="$1"
+  local out=""
+
+  # trim whitespace
+  url="${url##*( )}"
+  url="${url%%*( )}"
+
+  # already raw.githack
+  if [[ "$url" == *"raw.githack.com"* ]]; then
+    out="$url"
+
+  # handle raw.githubusercontent
+  elif [[ "$url" =~ ^https?://raw\.githubusercontent\.com/([^/]+)/([^/]+)/([^/]+)/(.*)$ ]]; then
+    local user=${match[1]}
+    local repo=${match[2]}
+    local branch=${match[3]}
+    local path=${match[4]}
+    out="https://raw.githack.com/${user}/${repo}/${branch}/${path}"
+
+  # handle standard GitHub blob
+  elif [[ "$url" =~ ^https?://github\.com/([^/]+)/([^/]+)/blob/([^/]+)/(.*)$ ]]; then
+    local user=${match[1]}
+    local repo=${match[2]}
+    local branch=${match[3]}
+    local path=${match[4]}
+    out="https://raw.githack.com/${user}/${repo}/${branch}/${path}"
+
+  else
+    echo "❌ URL tidak dikenali."
+    echo "   Contoh benar:"
+    echo "   https://github.com/user/repo/blob/branch/path/file.html"
+    return 1
+  fi
+
+  echo "🌐 raw.githack URL → $out"
+}
+
+
 
 #* ==============================================
 #? PROMPT CONFIGURATION
