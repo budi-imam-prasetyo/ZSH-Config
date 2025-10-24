@@ -88,21 +88,44 @@ alias ...='cd ../..'
 #? CUSTOM FUNCTIONS - Secured
 #* ==============================================
 
+mkcd() {
+  mkdir -p "$1" && cd "$1"
+}
+
+
 compile() {
   if [ -z "$1" ]; then
     echo "⚠️  Penggunaan: compile <path/ke/file.c>"
     return 1
   fi
 
-  local output="${1%.c}"
-  if gcc "$1" -o "$output"; then
-    echo "✅ Kompilasi berhasil! Menjalankan file → $output"
+  local source="$1"
+  local output="${source%.c}"
+
+  # Pastikan bear dan clang tersedia
+  if ! command -v clang >/dev/null 2>&1; then
+    echo "❌ Clang belum terinstal. Jalankan: sudo apt install clang -y"
+    return 1
+  fi
+
+  if ! command -v bear >/dev/null 2>&1; then
+    echo "❌ Bear belum terinstal. Jalankan: sudo apt install bear -y"
+    return 1
+  fi
+
+  echo "🛠️  Mengompilasi dengan Clang + Bear..."
+  # Jalankan bear untuk generate compile_commands.json secara otomatis
+  if bear -- clang -Wall -Wextra -std=c99 "$source" -o "$output"; then
+    echo "✅ Kompilasi berhasil! File output → $output"
+    echo "📄 File compile_commands.json dibuat/diupdate."
+    echo "🚀 Menjalankan program..."
     "./$output"
   else
     echo "❌ Kompilasi gagal. Periksa kembali kode sumbermu."
     return 1
   fi
 }
+
 
 gacp() {
   if [ -z "$1" ]; then
