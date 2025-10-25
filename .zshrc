@@ -232,6 +232,46 @@ init-repo() {
   fi
 }
 
+# 🧩 Fungsi untuk switch konfigurasi Git antar akun
+use-git() {
+  if [ ! -d .git ]; then
+    echo "⚠️  Ini bukan folder repository Git."
+    return 1
+  fi
+
+  case "$1" in
+    personal)
+      git config user.name "Budi Imam Prasetyo"
+      git config user.email "budiimamprsty@gmail.com"
+
+      current_url=$(git remote get-url origin 2>/dev/null)
+      if [[ $current_url == *"github.com-kampus"* ]]; then
+        new_url=$(echo "$current_url" | sed 's/github.com-kampus/github.com-personal/')
+        git remote set-url origin "$new_url"
+      fi
+
+      echo "✅ Sekarang repo ini pakai akun PERSONAL (budiimamprsty@gmail.com)"
+      ;;
+    
+    kampus)
+      git config user.name "Budi Prasetyo"
+      git config user.email "budi.prasetyo@satu.ac.id"
+
+      current_url=$(git remote get-url origin 2>/dev/null)
+      if [[ $current_url == *"github.com-personal"* ]]; then
+        new_url=$(echo "$current_url" | sed 's/github.com-personal/github.com-kampus/')
+        git remote set-url origin "$new_url"
+      fi
+
+      echo "🎓 Sekarang repo ini pakai akun KAMPUS (budi.prasetyo@satu.ac.id)"
+      ;;
+    
+    *)
+      echo "⚙️  Penggunaan: use-git <personal|kampus>"
+      ;;
+  esac
+}
+
 
 # githack: convert GitHub blob URL -> raw.githack and open it
 githack() {
