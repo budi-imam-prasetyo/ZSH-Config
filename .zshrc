@@ -214,6 +214,25 @@ zpush() {
   echo "✅ File .zshrc berhasil diperbarui dan dikirim ke repository!"
 }
 
+# 🧩 Fungsi untuk inisialisasi repo Git sesuai akun
+init-repo() {
+  if [ "$1" = "personal" ]; then
+    git init
+    git config user.name "Budi Imam Prasetyo"
+    git config user.email "budiimamprsty@gmail.com"
+    echo "✅ Repo personal dibuat (akun: budiimamprsty@gmail.com)"
+  elif [ "$1" = "kampus" ]; then
+    git init
+    git config user.name "Budi Prasetyo"
+    git config user.email "budi.prasetyo@satu.ac.id"
+    echo "✅ Repo kampus dibuat (akun: budi.prasetyo@satu.ac.id)"
+  else
+    echo "⚠️  Penggunaan: init-repo <personal|kampus>"
+    echo "Contoh: init-repo personal"
+  fi
+}
+
+
 # githack: convert GitHub blob URL -> raw.githack and open it
 githack() {
   if [[ -z "$1" ]]; then
