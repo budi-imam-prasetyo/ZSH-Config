@@ -18,11 +18,16 @@ plugins=(
   git
   zsh-autosuggestions
   fzf
-  zsh-syntax-highlighting
+  # zsh-syntax-highlighting
 )
 
 #! ----- Load Oh My Zsh -----
 source "$ZSH/oh-my-zsh.sh"
+
+#* ⚡ Kinerja/Kompatibilitas: Load zsh-syntax-highlighting terakhir
+if [ -f "${ZSH_CUSTOM:-$ZSH/custom}/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
+  source "${ZSH_CUSTOM:-$ZSH/custom}/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+fi
 
 #* ==============================================
 #? ENVIRONMENT CONFIGURATION
@@ -41,6 +46,7 @@ for p in "${paths[@]}"; do
   [[ ":$PATH:" != *":$p:"* ]] && PATH="$p:$PATH"
 done
 export PATH
+hash -r
 
 #! ----- FNM (Fast Node Manager) -----
 if command -v fnm >/dev/null 2>&1; then
@@ -74,13 +80,14 @@ HIST_STAMPS="yyyy-mm-dd"
 alias ls='eza --icons --group-directories-first'
 alias ll='eza -lh --icons --git'
 alias la='eza -la --icons'
-alias download='cd /home/data/ryoukaii/Downloads/'
+alias download='cd /home/data/$USER/Downloads/'
 alias zconfig='code ~/.zshrc'
 alias c='clear'
 alias x='exit'
 alias ga='git add .'
 alias serve='php artisan serve'
 alias dev='npm run dev'
+alias zreload='source ~/.zshrc && echo "✅ ZSH config reloaded!"'
 alias ..='cd ..'
 alias ...='cd ../..'
 
@@ -318,9 +325,9 @@ githack() {
 }
 
 
-
 #* ==============================================
 #? PROMPT CONFIGURATION
 #* ==============================================
 
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
+export PATH="$PATH:$HOME/.spicetify"
