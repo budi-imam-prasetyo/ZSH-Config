@@ -159,7 +159,8 @@ gacp() {
   fi
 
   echo "🌐 Mengecek koneksi internet..."
-  if ping -c 1 -W 1 github.com &>/dev/null; then
+  # Timeout 3 detik, hanya ambil header, silent mode dengan status
+  if curl -Is --connect-timeout 3 https://github.com 2>/dev/null | head -n 1 | grep -q "200\|301\|302"; then
     echo "✅ Internet terhubung. Mengirim perubahan ke remote..."
     if ! git push -u origin "$branch"; then
       echo "❌ Gagal mengirim perubahan. Periksa izin repository atau remote branch."
