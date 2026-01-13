@@ -1,3 +1,8 @@
+source /usr/share/cachyos-zsh-config/cachyos-config.zsh
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
 #* ==============================================
 #? ZSH CONFIGURATION - Optimized & Secure Edition
 #* ==============================================
@@ -21,8 +26,6 @@ plugins=(
   # zsh-syntax-highlighting
 )
 
-#! ----- Load Oh My Zsh -----
-source "$ZSH/oh-my-zsh.sh"
 
 #* ⚡ Kinerja/Kompatibilitas: Load zsh-syntax-highlighting terakhir
 if [ -f "${ZSH_CUSTOM:-$ZSH/custom}/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
@@ -70,7 +73,6 @@ fi
 #? ZSH BEHAVIOR SETTINGS
 #* ==============================================
 
-ENABLE_CORRECTION="true"
 HIST_STAMPS="yyyy-mm-dd"
 
 #* ==============================================
@@ -99,39 +101,42 @@ mkcd() {
   mkdir -p "$1" && cd "$1"
 }
 
-
 compile() {
-  if [ -z "$1" ]; then
-    echo "⚠️  Penggunaan: compile <path/ke/file.c>"
-    return 1
-  fi
-
-  local source="$1"
-  local output="${source%.c}"
-
-  # Pastikan bear dan clang tersedia
-  if ! command -v clang >/dev/null 2>&1; then
-    echo "❌ Clang belum terinstal. Jalankan: sudo apt install clang -y"
-    return 1
-  fi
-
-  if ! command -v bear >/dev/null 2>&1; then
-    echo "❌ Bear belum terinstal. Jalankan: sudo apt install bear -y"
-    return 1
-  fi
-
-  echo "🛠️  Mengompilasi dengan Clang + Bear..."
-  # Jalankan bear untuk generate compile_commands.json secara otomatis
-  if bear -- clang -Wall -Wextra -std=c99 "$source" -o "$output"; then
-    echo "✅ Kompilasi berhasil! File output → $output"
-    echo "📄 File compile_commands.json dibuat/diupdate."
-    echo "🚀 Menjalankan program..."
-    "./$output"
-  else
-    echo "❌ Kompilasi gagal. Periksa kembali kode sumbermu."
-    return 1
-  fi
+  clang -Wall -Wextra -std=c99 -g "$1" -o "${1%.c}" && "./${1%.c}"
 }
+
+# compile() {
+#   if [ -z "$1" ]; then
+#     echo "⚠️  Penggunaan: compile <path/ke/file.c>"
+#     return 1
+#   fi
+
+#   local source="$1"
+#   local output="${source%.c}"
+
+#   # Pastikan bear dan clang tersedia
+#   if ! command -v clang >/dev/null 2>&1; then
+#     echo "❌ Clang belum terinstal. Jalankan: sudo apt install clang -y"
+#     return 1
+#   fi
+
+#   if ! command -v bear >/dev/null 2>&1; then
+#     echo "❌ Bear belum terinstal. Jalankan: sudo apt install bear -y"
+#     return 1
+#   fi
+
+#   echo "🛠️  Mengompilasi dengan Clang + Bear..."
+#   # Jalankan bear untuk generate compile_commands.json secara otomatis
+#   if bear -- clang -Wall -Wextra -std=c99 "$source" -o "$output"; then
+#     echo "✅ Kompilasi berhasil! File output → $output"
+#     echo "📄 File compile_commands.json dibuat/diupdate."
+#     echo "🚀 Menjalankan program..."
+#     "./$output"
+#   else
+#     echo "❌ Kompilasi gagal. Periksa kembali kode sumbermu."
+#     return 1
+#   fi
+# }
 
 
 gacp() {
@@ -179,7 +184,7 @@ zpush() {
     return 1
   fi
 
-  local repo_dir="$HOME/dotfiles"
+  local repo_dir="$HOME/ZSH-Config"
   local file="$HOME/.zshrc"
   local prev_dir="$PWD"
 
@@ -332,3 +337,5 @@ githack() {
 
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 export PATH="$PATH:$HOME/.spicetify"
+# bun completions
+[ -s "/home/ryoukaii/.bun/_bun" ] && source "/home/ryoukaii/.bun/_bun"
