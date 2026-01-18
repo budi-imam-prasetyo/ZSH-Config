@@ -1,341 +1,282 @@
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║                     🚀 PERSONAL ZSH CONFIG FOR CACHYOS                       ║
+# ║                  Extends: cachyos-config.zsh (system-wide)                   ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ 🔌 PLUGINS & BASE CONFIG                                                     │
+# └──────────────────────────────────────────────────────────────────────────────┘
+plugins=(git fzf extract)
 source /usr/share/cachyos-zsh-config/cachyos-config.zsh
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-#* ==============================================
-#? ZSH CONFIGURATION - Optimized & Secure Edition
-#* ==============================================
-
-#! ----- Powerlevel10k Instant Prompt -----
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
-#! ----- Oh My Zsh Path -----
-export ZSH="$HOME/.oh-my-zsh"
-
-#! ----- Theme -----
-ZSH_THEME="powerlevel10k/powerlevel10k"
-
-#! ----- Plugins -----
-plugins=(
-  git
-  zsh-autosuggestions
-  fzf
-  # zsh-syntax-highlighting
-)
-
-
-#* ⚡ Kinerja/Kompatibilitas: Load zsh-syntax-highlighting terakhir
-if [ -f "${ZSH_CUSTOM:-$ZSH/custom}/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
-  source "${ZSH_CUSTOM:-$ZSH/custom}/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-fi
-
-#* ==============================================
-#? ENVIRONMENT CONFIGURATION
-#* ==============================================
-
-#! ----- PATH (idempotent version) -----
-paths=(
-  "$HOME/bin"
-  "$HOME/.local/bin"
-  "$HOME/.fnm"
-  "$HOME/.local/share/fnm"
-  "$HOME/.cargo/bin"
-  "$HOME/.bun/bin"
-)
-for p in "${paths[@]}"; do
-  [[ ":$PATH:" != *":$p:"* ]] && PATH="$p:$PATH"
-done
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ 🌍 ENVIRONMENT & PATH                                                        │
+# └──────────────────────────────────────────────────────────────────────────────┘
+typeset -U path
+path=($HOME/{bin,.local/bin,.fnm,.local/share/fnm,.cargo/bin,.bun/bin} $path)
 export PATH
-hash -r
 
-#! ----- FNM (Fast Node Manager) -----
-if command -v fnm >/dev/null 2>&1; then
-  eval "$(fnm env --use-on-cd --shell zsh)"
-fi
-
-#! ----- Zoxide -----
-if command -v zoxide >/dev/null 2>&1; then
-  eval "$(zoxide init zsh)"
-fi
-
-#! ----- FZF -----
-if command -v fzf >/dev/null 2>&1; then
-  [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-fi
-
-#! ----- Bun completions -----
+# Tool Initializations (lazy-load style)
+(( $+commands[fnm] ))    && eval "$(fnm env --use-on-cd --shell zsh)"
+(( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
-#* ==============================================
-#? ZSH BEHAVIOR SETTINGS
-#* ==============================================
-
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ ⚙️  ZSH OPTIONS                                                              │
+# └──────────────────────────────────────────────────────────────────────────────┘
 HIST_STAMPS="yyyy-mm-dd"
+setopt AUTO_CD              # cd tanpa ketik 'cd'
+setopt AUTO_PUSHD           # cd otomatis push ke stack
+setopt PUSHD_IGNORE_DUPS    # Tidak duplikat di stack
+setopt CORRECT              # Koreksi typo command
+setopt INTERACTIVE_COMMENTS # Komentar di terminal
 
-#* ==============================================
-#? CUSTOM ALIASES
-#* ==============================================
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ 🎨 ALIASES                                                                   │
+# └──────────────────────────────────────────────────────────────────────────────┘
 
+# ── File & Navigation ─────────────────────────────────────────────────────────
 alias ls='eza --icons --group-directories-first'
 alias ll='eza -lh --icons --git'
-alias la='eza -la --icons'
-alias download='cd /home/data/$USER/Downloads/'
-alias zconfig='code ~/.zshrc'
-alias c='clear'
-alias x='exit'
-alias ga='git add .'
-alias serve='php artisan serve'
-alias dev='npm run dev'
-alias zreload='source ~/.zshrc && echo "✅ ZSH config reloaded!"'
+alias la='eza -la --icons --git'
+alias lt='eza -T --icons --level=2'       # Tree view
+alias lta='eza -Ta --icons --level=2'     # Tree all
 alias ..='cd ..'
 alias ...='cd ../..'
+alias ....='cd ../../..'
+alias -- -='cd -'                         # Kembali ke dir sebelumnya
 
-#* ==============================================
-#? CUSTOM FUNCTIONS - Secured
-#* ==============================================
+# ── Quick Access ──────────────────────────────────────────────────────────────
+alias dl='cd /home/data/$USER/Downloads'
+alias desk='cd ~/Desktop'
+alias proj='cd ~/Projects 2>/dev/null || cd ~/Kuliah'
 
-mkcd() {
-  mkdir -p "$1" && cd "$1"
-}
+# ── System & Tools ────────────────────────────────────────────────────────────
+alias x='exit'
+alias q='exit'
+alias zconfig='${EDITOR:-code} ~/.zshrc'
+alias zreload='exec zsh && echo "✅ ZSH reloaded!"'
+alias ports='ss -tulanp'
+alias myip='curl -s ifconfig.me && echo'
+alias weather='curl -s "wttr.in/?format=3"'
+alias diskspace='df -h | grep -E "^/dev"'
+alias meminfo='free -h'
 
-compile() {
-  clang -Wall -Wextra -std=c99 -g "$1" -o "${1%.c}" && "./${1%.c}"
-}
+# ── Development ───────────────────────────────────────────────────────────────
+alias ga='git add .'
+alias gs='git status -sb'
+alias gl='git log --oneline -15'
+alias gd='git diff'
+alias serve='php artisan serve'
+alias dev='npm run dev'
+alias build='npm run build'
 
-# compile() {
-#   if [ -z "$1" ]; then
-#     echo "⚠️  Penggunaan: compile <path/ke/file.c>"
-#     return 1
-#   fi
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ 🛠️  FUNCTIONS                                                                │
+# └──────────────────────────────────────────────────────────────────────────────┘
 
-#   local source="$1"
-#   local output="${source%.c}"
+# ── Directory Operations ──────────────────────────────────────────────────────
 
-#   # Pastikan bear dan clang tersedia
-#   if ! command -v clang >/dev/null 2>&1; then
-#     echo "❌ Clang belum terinstal. Jalankan: sudo apt install clang -y"
-#     return 1
-#   fi
+# Buat direktori dan langsung masuk
+mkcd() { mkdir -p "$1" && cd "$1" }
 
-#   if ! command -v bear >/dev/null 2>&1; then
-#     echo "❌ Bear belum terinstal. Jalankan: sudo apt install bear -y"
-#     return 1
-#   fi
-
-#   echo "🛠️  Mengompilasi dengan Clang + Bear..."
-#   # Jalankan bear untuk generate compile_commands.json secara otomatis
-#   if bear -- clang -Wall -Wextra -std=c99 "$source" -o "$output"; then
-#     echo "✅ Kompilasi berhasil! File output → $output"
-#     echo "📄 File compile_commands.json dibuat/diupdate."
-#     echo "🚀 Menjalankan program..."
-#     "./$output"
-#   else
-#     echo "❌ Kompilasi gagal. Periksa kembali kode sumbermu."
-#     return 1
-#   fi
-# }
-
-
-gacp() {
-  if [ -z "$1" ]; then
-    echo "⚠️  Penggunaan: gacp \"pesan commit\""
-    return 1
-  fi
-
-  local branch
-  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-  if [ -z "$branch" ]; then
-    echo "❌ Direktori ini bukan repository Git!"
-    return 1
-  fi
-
-  echo "📦 Melakukan commit ke branch: $branch"
-  if ! git add .; then
-    echo "❌ Gagal menambahkan perubahan ke staging area."
-    return 1
-  fi
-
-  if ! git commit -m "$1"; then
-    echo "❌ Commit gagal. Pastikan ada perubahan sebelum commit."
-    return 1
-  fi
-
-  echo "🌐 Mengecek koneksi internet..."
-  # Timeout 3 detik, hanya ambil header, silent mode dengan status
-  if curl -Is --connect-timeout 3 https://github.com 2>/dev/null | head -n 1 | grep -q "200\|301\|302"; then
-    echo "✅ Internet terhubung. Mengirim perubahan ke remote..."
-    if ! git push -u origin "$branch"; then
-      echo "❌ Gagal mengirim perubahan. Periksa izin repository atau remote branch."
-      return 1
-    fi
-    echo "🚀 Perubahan berhasil dikirim ke branch \"$branch\"!"
-  else
-    echo "⚠️  Tidak ada koneksi internet."
-    echo "💾 Commit tetap tersimpan di lokal. Jalankan 'git push' nanti saat online."
-  fi
-}
-
-zpush() {
-  if [ -z "$1" ]; then
-    echo "⚠️  Penggunaan: zpush \"pesan commit\""
-    return 1
-  fi
-
-  local repo_dir="$HOME/ZSH-Config"
-  local file="$HOME/.zshrc"
-  local prev_dir="$PWD"
-
-  if [ ! -d "$repo_dir" ]; then
-    echo "❌ Folder dotfiles tidak ditemukan di $repo_dir"
-    return 1
-  fi
-
-  cd "$repo_dir" || return 1
-  if ! cp "$file" .; then
-    echo "❌ Gagal menyalin file konfigurasi Zsh dari $file"
-    cd "$prev_dir"
-    return 1
-  fi
-
-  if ! git add .; then
-    echo "❌ Gagal menambahkan file ke Git."
-    cd "$prev_dir"
-    return 1
-  fi
-
-  if ! git commit -m "$1"; then
-    echo "❌ Gagal membuat commit. Mungkin tidak ada perubahan."
-    cd "$prev_dir"
-    return 1
-  fi
-
-  # Deteksi branch utama secara otomatis
-  local main_branch
-  main_branch=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | cut -d'/' -f2)
-  main_branch=${main_branch:-master}
-
-  if ! git push -u origin "$main_branch"; then
-    echo "❌ Gagal mengirim perubahan ke branch utama ($main_branch)."
-    cd "$prev_dir"
-    return 1
-  fi
-
-  cd "$prev_dir"
-  echo "✅ File .zshrc berhasil diperbarui dan dikirim ke repository!"
-}
-
-# 🧩 Fungsi untuk inisialisasi repo Git sesuai akun
-init-repo() {
-  if [ "$1" = "personal" ]; then
-    git init
-    git config user.name "Budi Imam Prasetyo"
-    git config user.email "budiimamprsty@gmail.com"
-    echo "✅ Repo personal dibuat (akun: budiimamprsty@gmail.com)"
-  elif [ "$1" = "kampus" ]; then
-    git init
-    git config user.name "Budi Prasetyo"
-    git config user.email "budi.prasetyo@satu.ac.id"
-    echo "✅ Repo kampus dibuat (akun: budi.prasetyo@satu.ac.id)"
-  else
-    echo "⚠️  Penggunaan: init-repo <personal|kampus>"
-    echo "Contoh: init-repo personal"
-  fi
-}
-
-# 🧩 Fungsi untuk switch konfigurasi Git antar akun
-use-git() {
-  if [ ! -d .git ]; then
-    echo "⚠️  Ini bukan folder repository Git."
-    return 1
-  fi
-
+# Ekstrak berbagai format arsip
+extract() {
+  [[ -z "$1" ]] && { echo "⚠️  Usage: extract <file>"; return 1 }
+  [[ ! -f "$1" ]] && { echo "❌ File tidak ditemukan: $1"; return 1 }
+  
   case "$1" in
-    personal)
-      git config user.name "Budi Imam Prasetyo"
-      git config user.email "budiimamprsty@gmail.com"
-
-      current_url=$(git remote get-url origin 2>/dev/null)
-      if [[ $current_url == *"github.com-kampus"* ]]; then
-        new_url=$(echo "$current_url" | sed 's/github.com-kampus/github.com-personal/')
-        git remote set-url origin "$new_url"
-      fi
-
-      echo "✅ Sekarang repo ini pakai akun PERSONAL (budiimamprsty@gmail.com)"
-      ;;
-    
-    kampus)
-      git config user.name "Budi Prasetyo"
-      git config user.email "budi.prasetyo@satu.ac.id"
-
-      current_url=$(git remote get-url origin 2>/dev/null)
-      if [[ $current_url == *"github.com-personal"* ]]; then
-        new_url=$(echo "$current_url" | sed 's/github.com-personal/github.com-kampus/')
-        git remote set-url origin "$new_url"
-      fi
-
-      echo "🎓 Sekarang repo ini pakai akun KAMPUS (budi.prasetyo@satu.ac.id)"
-      ;;
-    
-    *)
-      echo "⚙️  Penggunaan: use-git <personal|kampus>"
-      ;;
+    *.tar.bz2) tar xjf "$1"    ;;
+    *.tar.gz)  tar xzf "$1"    ;;
+    *.tar.xz)  tar xJf "$1"    ;;
+    *.tar)     tar xf "$1"     ;;
+    *.bz2)     bunzip2 "$1"    ;;
+    *.gz)      gunzip "$1"     ;;
+    *.zip)     unzip "$1"      ;;
+    *.rar)     unrar x "$1"    ;;
+    *.7z)      7z x "$1"       ;;
+    *)         echo "❌ Format tidak didukung: $1" ;;
   esac
 }
 
+# ── C Programming ─────────────────────────────────────────────────────────────
 
-# githack: convert GitHub blob URL -> raw.githack and open it
-githack() {
-  if [[ -z "$1" ]]; then
-    echo "⚠️  Usage: githack <github-blob-url>"
-    return 1
-  fi
-
-  local url="$1"
-  local out=""
-
-  # trim whitespace
-  url="${url##*( )}"
-  url="${url%%*( )}"
-
-  # already raw.githack
-  if [[ "$url" == *"raw.githack.com"* ]]; then
-    out="$url"
-
-  # handle raw.githubusercontent
-  elif [[ "$url" =~ ^https?://raw\.githubusercontent\.com/([^/]+)/([^/]+)/([^/]+)/(.*)$ ]]; then
-    local user=${match[1]}
-    local repo=${match[2]}
-    local branch=${match[3]}
-    local path=${match[4]}
-    out="https://raw.githack.com/${user}/${repo}/${branch}/${path}"
-
-  # handle standard GitHub blob
-  elif [[ "$url" =~ ^https?://github\.com/([^/]+)/([^/]+)/blob/([^/]+)/(.*)$ ]]; then
-    local user=${match[1]}
-    local repo=${match[2]}
-    local branch=${match[3]}
-    local path=${match[4]}
-    out="https://raw.githack.com/${user}/${repo}/${branch}/${path}"
-
+compile() {
+  [[ -z "$1" ]] && { echo "⚠️  Usage: compile <file.c> [args...]"; return 1 }
+  [[ ! -f "$1" ]] && { echo "❌ File tidak ditemukan: $1"; return 1 }
+  
+  local src="$1" out="${1%.c}"
+  shift  # Args sisanya untuk program
+  
+  (( ! $+commands[clang] )) && { echo "❌ Install clang: sudo pacman -S clang"; return 1 }
+  
+  echo "🛠️  Compiling: $src"
+  if clang -Wall -Wextra -std=c99 -g "$src" -o "$out"; then
+    echo "✅ Output: $out"
+    echo "🚀 Running...\n"
+    "./$out" "$@"
   else
-    echo "❌ URL tidak dikenali."
-    echo "   Contoh benar:"
-    echo "   https://github.com/user/repo/blob/branch/path/file.html"
+    echo "❌ Compilation failed!"
     return 1
   fi
-
-  echo "🌐 raw.githack URL → $out"
 }
 
+# Compile dengan debug info untuk GDB
+debug-compile() {
+  [[ -z "$1" ]] && { echo "⚠️  Usage: debug-compile <file.c>"; return 1 }
+  local src="$1" out="${1%.c}"
+  
+  clang -Wall -Wextra -std=c99 -g -O0 -fsanitize=address "$src" -o "$out" && \
+    echo "✅ Debug build: $out (run with: gdb ./$out)"
+}
 
-#* ==============================================
-#? PROMPT CONFIGURATION
-#* ==============================================
+# ── Git Workflow ──────────────────────────────────────────────────────────────
 
-[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
-export PATH="$PATH:$HOME/.spicetify"
-# bun completions
-[ -s "/home/ryoukaii/.bun/_bun" ] && source "/home/ryoukaii/.bun/_bun"
+# Git config untuk multi-akun
+typeset -A GIT_ACCOUNTS
+GIT_ACCOUNTS=(
+  [personal]="Budi Imam Prasetyo|budiimamprsty@gmail.com|github.com-personal"
+  [kampus]="Budi Prasetyo|budi.prasetyo@satu.ac.id|github.com-kampus"
+)
+
+# Quick commit & push
+gacp() {
+  [[ -z "$1" ]] && { echo "⚠️  Usage: gacp \"commit message\""; return 1 }
+  
+  local branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+  [[ -z "$branch" ]] && { echo "❌ Not a Git repository!"; return 1 }
+  
+  echo "📦 Committing to: $branch"
+  git add . && git commit -m "$1" || return 1
+  
+  # Check internet & push
+  if curl -s --connect-timeout 2 https://github.com >/dev/null 2>&1; then
+    git push -u origin "$branch" && echo "🚀 Pushed to $branch!"
+  else
+    echo "⚠️  Offline. Run 'git push' later."
+  fi
+}
+
+# Initialize repo dengan akun
+init-repo() {
+  local account="${GIT_ACCOUNTS[$1]}"
+  [[ -z "$account" ]] && { echo "⚠️  Usage: init-repo <personal|kampus>"; return 1 }
+  
+  local name="${account%%|*}"
+  local email="${${account#*|}%%|*}"
+  
+  git init
+  git config user.name "$name"
+  git config user.email "$email"
+  echo "✅ Initialized with: $name <$email>"
+}
+
+# Switch akun di repo yang ada
+use-git() {
+  [[ ! -d .git ]] && { echo "⚠️  Not a Git repository!"; return 1 }
+  
+  local account="${GIT_ACCOUNTS[$1]}"
+  [[ -z "$account" ]] && { echo "⚙️  Usage: use-git <personal|kampus>"; return 1 }
+  
+  local name="${account%%|*}"
+  local email="${${account#*|}%%|*}"
+  local host="${account##*|}"
+  local other_host=$([[ "$1" == "personal" ]] && echo "github.com-kampus" || echo "github.com-personal")
+  
+  git config user.name "$name"
+  git config user.email "$email"
+  
+  # Update remote URL jika perlu
+  local url=$(git remote get-url origin 2>/dev/null)
+  [[ "$url" == *"$other_host"* ]] && git remote set-url origin "${url/$other_host/$host}"
+  
+  echo "✅ Switched to: $name ($1)"
+}
+
+# Push .zshrc ke repo backup
+zpush() {
+  [[ -z "$1" ]] && { echo "⚠️  Usage: zpush \"commit message\""; return 1 }
+  
+  local repo="$HOME/ZSH-Config"
+  [[ ! -d "$repo" ]] && { echo "❌ Repo not found: $repo"; return 1 }
+  
+  cp ~/.zshrc "$repo/" && \
+  git -C "$repo" add -A && \
+  git -C "$repo" commit -m "$1" && \
+  git -C "$repo" push && \
+  echo "✅ .zshrc synced!"
+}
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+
+# Convert GitHub URL ke raw.githack
+githack() {
+  [[ -z "$1" ]] && { echo "⚠️  Usage: githack <github-url>"; return 1 }
+  
+  local url="$1" out=""
+  
+  case "$url" in
+    *raw.githack.com*) out="$url" ;;
+    *raw.githubusercontent.com*)
+      [[ "$url" =~ 'raw.githubusercontent.com/([^/]+)/([^/]+)/([^/]+)/(.*)' ]] && \
+        out="https://raw.githack.com/${match[1]}/${match[2]}/${match[3]}/${match[4]}"
+      ;;
+    *github.com*/blob/*)
+      [[ "$url" =~ 'github.com/([^/]+)/([^/]+)/blob/([^/]+)/(.*)' ]] && \
+        out="https://raw.githack.com/${match[1]}/${match[2]}/${match[3]}/${match[4]}"
+      ;;
+    *) echo "❌ Invalid GitHub URL"; return 1 ;;
+  esac
+  
+  echo "🌐 $out"
+  (( $+commands[xclip] )) && echo -n "$out" | xclip -selection clipboard && echo "📋 Copied!"
+}
+
+# Quick notes
+note() {
+  local file="$HOME/.notes.md"
+  case "$1" in
+    -l|--list) cat "$file" 2>/dev/null || echo "No notes yet." ;;
+    -c|--clear) : > "$file" && echo "🗑️  Notes cleared!" ;;
+    "") ${EDITOR:-nano} "$file" ;;
+    *) echo "- $(date '+%Y-%m-%d %H:%M'): $*" >> "$file" && echo "📝 Note saved!" ;;
+  esac
+}
+
+# Benchmark command execution time
+bench() {
+  local start=$(date +%s.%N)
+  "$@"
+  local end=$(date +%s.%N)
+  echo "\n⏱️  Elapsed: $(echo "$end - $start" | bc)s"
+}
+
+# Find proses & kill
+fkill() {
+  local pid=$(ps aux | fzf --header="Select process to kill" | awk '{print $2}')
+  [[ -n "$pid" ]] && kill -9 "$pid" && echo "💀 Killed PID: $pid"
+}
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ 📚 HELP                                                                      │
+# └──────────────────────────────────────────────────────────────────────────────┘
+zhelp() {
+  cat << 'EOF'
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           🚀 CUSTOM ZSH COMMANDS                             ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ NAVIGATION          │ DEVELOPMENT         │ GIT                              ║
+║ ─────────────────── │ ─────────────────── │ ────────────────────────────────-║
+║ mkcd <dir>          │ compile <file.c>    │ gacp "msg"   - add,commit,push   ║
+║ extract <archive>   │ debug-compile <.c>  │ init-repo <personal|kampus>      ║
+║ lt / lta            │ bench <cmd>         │ use-git <personal|kampus>        ║
+║ dl / desk / proj    │ dev / serve / build │ zpush "msg"  - sync .zshrc       ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ UTILITIES           │ SYSTEM                                                 ║
+║ ─────────────────── │ ────────────────────────────────────────────────────── ║
+║ githack <url>       │ myip / weather / ports / diskspace / meminfo           ║
+║ note [-l|-c] [txt]  │ zconfig / zreload / zhelp                              ║
+║ fkill               │ x / q (exit)                                           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+EOF
+}
