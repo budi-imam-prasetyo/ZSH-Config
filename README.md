@@ -1,346 +1,558 @@
-# ⚡ ZSH Configuration — *Optimized & Secure Edition*
+# ⚡ ZSH Configuration for CachyOS
 
-> ✨ *Transform your terminal from boring to blazing.*
+> ✨ *Transform your CachyOS terminal into a productivity powerhouse.*
 
-Custom **`.zshrc`** setup untuk developer yang menginginkan terminal yang:
+Custom **`.zshrc`** configuration for developers who want a terminal that's:
 
-* ⚡ **Super cepat** dengan instant prompt
-* 🎯 **Minimal namun powerful**
-* 🔒 **Aman** dengan validasi dan error handling
-* 🧠 **Smart** dengan auto-detection dan idempotent configuration
+* ⚡ **Blazing fast** with optimized loading
+* 🎯 **Minimal yet powerful** - essential tools only
+* 🔒 **Secure** with proper validation and error handling
+* 🧠 **Smart** with auto-detection and intelligent defaults
+* 🎨 **Beautiful** leveraging CachyOS's native theming
 
-Menggabungkan **Oh My Zsh**, **Powerlevel10k**, **FNM**, **Bun**, **Zoxide**, dan **FZF** dalam satu konfigurasi yang efisien dan elegan.
-
----
-
-## 🧩 Fitur Unggulan
-
-| 🔥 Fitur | ⚙️ Deskripsi |
-|---------|-------------|
-| ⚡ **Instant Prompt** | Powerlevel10k membuat shell start < **1 detik** |
-| 🔮 **Oh My Zsh Plugins** | Autosuggestion, syntax highlighting, fzf integration |
-| 🧱 **Idempotent PATH** | Tidak ada duplikasi PATH meski source berkali-kali |
-| 🪄 **Smart Functions** | Workflow Git, compile C, dengan validasi lengkap |
-| 📦 **Modern Tools** | Integrasi FNM, Bun, Zoxide, Eza |
-| 💾 **Auto Backup** | Push `.zshrc` ke repo `dotfiles` dengan 1 command |
+Built on top of **CachyOS's system-wide config**, enhanced with **FNM**, **Bun**, **Zoxide**, **Eza**, and powerful custom functions.
 
 ---
 
-## ⚙️ Dependencies
+## 🎯 Philosophy
 
-Pastikan semua tools berikut sudah terinstal:
+This configuration **extends** CachyOS's excellent base setup (`cachyos-config.zsh`) rather than replacing it. You get:
 
-### Core Tools
+- ✅ CachyOS's optimized ZSH configuration
+- ✅ Beautiful theme and prompt (already configured)
+- ✅ Essential plugins (git, fzf, extract)
+- ✅ Custom aliases and functions for development
+- ✅ Multi-account Git workflow helpers
+- ✅ Modern CLI tool integrations
+
+---
+
+## 📦 What's Included
+
+### 🔌 Plugins
+- **git** - Git shortcuts and intelligent status
+- **fzf** - Fuzzy finder (`Ctrl+R` history, `Ctrl+T` files)
+- **extract** - Universal archive extraction
+
+### 🛠️ Modern CLI Tools
+- **eza** - Modern `ls` replacement with icons and git integration
+- **zoxide** - Smart directory jumper (`z` command)
+- **fnm** - Fast Node.js version manager
+- **bun** - Fast JavaScript runtime (optional)
+
+### ⚡ Custom Features
+- **C/C++ development** helpers with Clang integration
+- **Multi-account Git** workflow (personal + kampus/work)
+- **Smart functions** with validation and error handling
+- **Quick navigation** aliases and shortcuts
+- **Utility functions** for common tasks
+
+---
+
+## 🚀 Prerequisites
+
+### Required (Core System)
 ```bash
-# ZSH & Oh My Zsh
-sudo apt install zsh -y
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+# CachyOS already provides these:
+# - ZSH
+# - cachyos-zsh-config
+# - Basic completions
 ```
 
-### Theme & Plugins
+### Required (Modern CLI Tools)
 ```bash
-# Powerlevel10k Theme
-git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
-
-# ZSH Autosuggestions
-git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-
-# ZSH Syntax Highlighting
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+# Install with pacman
+sudo pacman -S eza zoxide fzf clang
 ```
 
-### Additional Tools
+### Optional (Development Tools)
 ```bash
-# Modern CLI replacements
-sudo apt install eza zoxide fzf -y
-
-# FNM (Fast Node Manager)
+# Fast Node Manager (highly recommended for Node.js devs)
 curl -fsSL https://fnm.vercel.app/install | bash
 
-# Bun (Optional)
+# Bun runtime (optional, for JavaScript/TypeScript)
 curl -fsSL https://bun.sh/install | bash
 
-# Development tools (for compile function)
-sudo apt install clang bear -y
+# Additional development tools
+sudo pacman -S git base-devel gdb
 ```
 
 ---
 
-## 🚀 Instalasi
+## 📥 Installation
 
-### Quick Install
+### Method 1: Quick Install (Recommended)
 ```bash
-# Clone repository
-git clone https://github.com/<username>/dotfiles.git ~/dotfiles
+# Backup existing .zshrc
+[ -f ~/.zshrc ] && cp ~/.zshrc ~/.zshrc.backup
 
-# Backup .zshrc lama (jika ada)
+# Download the configuration
+curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/ZSH-Config/main/.zshrc -o ~/.zshrc
+
+# Reload your shell
+exec zsh
+```
+
+### Method 2: Manual Install
+```bash
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/ZSH-Config.git ~/ZSH-Config
+
+# Backup existing config
 [ -f ~/.zshrc ] && mv ~/.zshrc ~/.zshrc.backup
 
-# Copy konfigurasi baru
-cp ~/dotfiles/.zshrc ~/.zshrc
+# Create symlink (easier to update)
+ln -sf ~/ZSH-Config/.zshrc ~/.zshrc
 
 # Reload shell
 exec zsh
+```
 
-# Konfigurasi Powerlevel10k (akan muncul wizard)
-p10k configure
+### Post-Installation
+```bash
+# Test that everything works
+zhelp
+
+# If you see the help menu, you're all set! 🎉
 ```
 
 ---
 
-## 🧠 Struktur Konfigurasi
+## 🎨 Features & Usage
 
-### 💡 Powerlevel10k Instant Prompt
-Percepat startup shell dengan cache prompt:
-```zsh
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-```
+### 📁 File Navigation & Management
 
-### 🔮 Oh My Zsh Configuration
-```zsh
-export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="powerlevel10k/powerlevel10k"
-
-plugins=(
-  git                      # Git aliases dan completion
-  zsh-autosuggestions      # Saran command otomatis
-  fzf                      # Fuzzy finder integration
-  zsh-syntax-highlighting  # Syntax highlighting real-time
-)
-```
-
-### 🌍 Environment Setup (Idempotent)
-PATH configuration yang aman dan tidak duplikat:
-```zsh
-paths=(
-  "$HOME/bin"
-  "$HOME/.local/bin"
-  "$HOME/.fnm"
-  "$HOME/.local/share/fnm"
-  "$HOME/.cargo/bin"
-  "$HOME/.bun/bin"
-)
-for p in "${paths[@]}"; do
-  [[ ":$PATH:" != *":$p:"* ]] && PATH="$p:$PATH"
-done
-```
-
-### 🔧 Tool Initialization
-Auto-detection dengan conditional loading:
-```zsh
-# FNM - Fast Node Manager
-command -v fnm >/dev/null 2>&1 && eval "$(fnm env --use-on-cd --shell zsh)"
-
-# Zoxide - Smart directory jumper
-command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
-
-# FZF - Fuzzy finder
-command -v fzf >/dev/null 2>&1 && [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-```
-
----
-
-## ⚡ Custom Aliases
-
-### 📁 Directory & File Management
+#### Enhanced Directory Listing (Eza)
 ```bash
-ls          # Modern ls dengan eza (icons + group directories)
-ll          # Detailed list dengan git status
-la          # List all termasuk hidden files
-..          # cd ..
-...         # cd ../..
+ls          # Beautiful listing with icons
+ll          # Detailed view with file sizes and git status
+la          # Show hidden files
+lt          # Tree view (2 levels deep)
+lta         # Tree view including hidden files
 ```
 
-### 🛠️ Development Shortcuts
+#### Quick Navigation
 ```bash
-zconfig     # Buka .zshrc di VS Code
-c           # clear
-x           # exit
+..          # Go up one directory
+...         # Go up two directories
+....        # Go up three directories
+-           # Jump to previous directory
+
+dl          # Jump to Downloads folder
+desk        # Jump to Desktop
+proj        # Jump to Projects (or Kuliah if not found)
+
+mkcd myapp  # Create directory and cd into it
+```
+
+### 💻 Development Workflow
+
+#### C Programming
+```bash
+# Compile and run in one command
+compile program.c
+compile calculator.c 5 10    # With arguments
+
+# Compile with debug symbols for GDB
+debug-compile program.c
+gdb ./program                # Debug with GDB
+```
+
+**Features:**
+- ✅ Automatic Clang installation check
+- ✅ Full compiler warnings (`-Wall -Wextra`)
+- ✅ C99 standard
+- ✅ Debug symbols included
+- ✅ AddressSanitizer in debug builds
+
+#### Git Multi-Account Workflow
+
+**Setup your accounts** (edit in `.zshrc`):
+```bash
+# Configuration is already included:
+# - personal: Budi Imam Prasetyo <budiimamprsty@gmail.com>
+# - kampus: Budi Prasetyo <budi.prasetyo@satu.ac.id>
+```
+
+**Initialize new repository:**
+```bash
+init-repo personal     # For personal projects
+init-repo kampus       # For campus/work projects
+```
+
+**Switch account in existing repo:**
+```bash
+use-git personal       # Switch to personal account
+use-git kampus         # Switch to campus account
+```
+
+**Quick commit & push:**
+```bash
+gacp "feat: add user authentication"
+
+# Does three things:
+# 1. git add .
+# 2. git commit -m "message"
+# 3. git push (only if online)
+```
+
+**Backup your .zshrc:**
+```bash
+zpush "update: added new aliases"
+
+# Syncs ~/.zshrc to ~/ZSH-Config repository
+```
+
+#### Standard Git Shortcuts
+```bash
 ga          # git add .
-serve       # php artisan serve
-dev         # npm run dev
-download    # cd ke folder Downloads
+gs          # git status (short format with branch)
+gl          # git log (last 15 commits, one line each)
+gd          # git diff
+```
+
+#### Framework Development
+```bash
+serve       # php artisan serve (Laravel)
+dev         # npm run dev (Vite/Webpack)
+build       # npm run build (production)
+```
+
+### 🛠️ Utilities
+
+#### GitHub URL Converter
+```bash
+# Convert GitHub blob URLs to raw.githack CDN
+githack https://github.com/user/repo/blob/main/script.js
+
+# Output:
+# 🌐 https://raw.githack.com/user/repo/main/script.js
+# 📋 Copied to clipboard! (if xclip is installed)
+```
+
+#### Quick Notes System
+```bash
+note "Remember to update documentation"    # Add timestamped note
+note -l                                    # List all notes
+note                                       # Open notes in editor
+note -c                                    # Clear all notes
+```
+
+#### Process Management
+```bash
+fkill       # Fuzzy search and kill process interactively
+```
+
+#### Benchmarking
+```bash
+bench npm run build              # Measure execution time
+bench ./my-script.sh            # Works with any command
+```
+
+### ℹ️ System Information
+
+```bash
+myip        # Show your public IP
+weather     # Current weather for your location
+ports       # List all open ports
+diskspace   # Disk usage summary
+meminfo     # Memory usage
+```
+
+### ⚙️ Configuration
+
+```bash
+zconfig     # Edit .zshrc in your editor (VS Code by default)
+zreload     # Reload ZSH configuration
+zhelp       # Show comprehensive help menu
+x / q       # Exit terminal
 ```
 
 ---
 
-## 🧠 Custom Functions
+## 🎯 Custom Functions Reference
 
-### 📦 `mkcd()` - Make Directory & CD
-Buat folder dan langsung masuk ke dalamnya:
-```bash
-mkcd new-project
-```
-
-### 🔨 `compile()` - Smart C Compiler
-Compile dan jalankan program C dengan Clang + Bear (generate `compile_commands.json`):
-```bash
-compile main.c
-```
-
-**Fitur:**
-- ✅ Auto-check Clang dan Bear
-- ✅ Generate `compile_commands.json` untuk LSP
-- ✅ Compile dengan flags `-Wall -Wextra -std=c99`
-- ✅ Auto-run setelah compile sukses
-- ✅ Error handling lengkap
-
-### 🚀 `gacp()` - Git Add, Commit, Push
-Workflow Git otomatis dengan validasi:
-```bash
-gacp "fix: update login validation"
-```
-
-**Fitur:**
-- ✅ Auto-detect current branch
-- ✅ Cek koneksi internet sebelum push
-- ✅ Full error handling
-- ✅ Informative feedback
-
-### 💾 `zpush()` - Backup ZSH Config
-Backup `.zshrc` ke repository dotfiles:
-```bash
-zpush "update: add new aliases"
-```
-
-**Fitur:**
-- ✅ Auto-copy `.zshrc` ke `~/dotfiles`
-- ✅ Auto-detect main branch (master/main)
-- ✅ Git commit dan push otomatis
-- ✅ Return ke direktori sebelumnya
-
-### 🌐 `githack()` - Convert GitHub URL to raw.githack
-Convert GitHub blob URL menjadi raw.githack URL untuk preview langsung:
-```bash
-githack https://github.com/user/repo/blob/main/index.html
-```
-
-**Fitur:**
-- ✅ Support GitHub blob URL
-- ✅ Support raw.githubusercontent.com URL
-- ✅ Auto-trim whitespace
-- ✅ User-friendly error messages
+| Function | Usage | Description |
+|----------|-------|-------------|
+| `mkcd` | `mkcd project` | Create directory and cd into it |
+| `extract` | `extract archive.zip` | Extract any archive format |
+| `compile` | `compile file.c [args]` | Compile and run C program |
+| `debug-compile` | `debug-compile file.c` | Compile with debug symbols |
+| `gacp` | `gacp "message"` | Git add, commit, and push |
+| `init-repo` | `init-repo personal` | Initialize repo with account |
+| `use-git` | `use-git kampus` | Switch Git account |
+| `zpush` | `zpush "message"` | Backup .zshrc to repo |
+| `githack` | `githack <url>` | Convert GitHub URL to CDN |
+| `note` | `note "text"` | Quick note-taking |
+| `bench` | `bench command` | Benchmark execution time |
+| `fkill` | `fkill` | Fuzzy process killer |
 
 ---
 
-## 📁 Struktur File
+## 🗂️ File Structure
 
 ```
 ~/
-├── .zshrc                    # File konfigurasi utama
-├── .p10k.zsh                 # Konfigurasi Powerlevel10k
-├── .oh-my-zsh/               # Oh My Zsh installation
-│   └── custom/
-│       ├── themes/
-│       │   └── powerlevel10k/
-│       └── plugins/
-│           ├── zsh-autosuggestions/
-│           └── zsh-syntax-highlighting/
-└── dotfiles/                 # Repository backup
+├── .zshrc                           # Your configuration (this file)
+├── .notes.md                        # Quick notes storage
+└── ZSH-Config/                      # Backup repository (optional)
     └── .zshrc
+
+# CachyOS System Files (don't modify):
+/usr/share/cachyos-zsh-config/
+└── cachyos-config.zsh              # Base configuration
 ```
 
 ---
 
-## 🧰 Troubleshooting
+## 🔧 Customization
 
-### Plugin tidak muncul
+### Adding Custom Aliases
+
+Edit `.zshrc` in the aliases section:
 ```bash
-# Reinstall plugins
-rm -rf ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/*
-# Ikuti instruksi instalasi di atas
-```
+# Open config
+zconfig
 
-### Command not found
-| Error | Solusi |
-|-------|--------|
-| `eza: command not found` | `sudo apt install eza -y` |
-| `fnm: command not found` | `curl -fsSL https://fnm.vercel.app/install \| bash` |
-| `zoxide: command not found` | `sudo apt install zoxide -y` |
-| `clang: command not found` | `sudo apt install clang bear -y` |
-
-### Startup lambat
-1. Cek plugin yang tidak perlu
-2. Hapus PATH duplikat manual (sudah handled otomatis)
-3. Jalankan `p10k configure` untuk optimasi instant prompt
-
-### Git push gagal di `gacp()` atau `zpush()`
-- Pastikan SSH key sudah di-setup
-- Cek remote repository dengan `git remote -v`
-- Cek internet connection
-
----
-
-## 🎨 Customization
-
-### Tambah Alias Baru
-Edit `.zshrc` dan tambahkan di section `CUSTOM ALIASES`:
-```bash
+# Add your alias in the ALIASES section:
 alias myalias='command here'
+
+# Reload
+zreload
 ```
 
-### Tambah Function Baru
-Tambahkan di section `CUSTOM FUNCTIONS`:
+### Adding Custom Functions
+
 ```bash
+# Add in the FUNCTIONS section:
 myfunction() {
   # Your code here
+  echo "Hello from my function!"
 }
 ```
 
-### Update Theme
-Jalankan konfigurasi ulang Powerlevel10k:
+### Modifying Git Accounts
+
+Edit the `GIT_ACCOUNTS` associative array:
 ```bash
-p10k configure
+typeset -A GIT_ACCOUNTS
+GIT_ACCOUNTS=(
+  [personal]="Your Name|your.email@gmail.com|github.com-personal"
+  [work]="Work Name|work@company.com|github.com-work"
+)
+```
+
+**Format:** `"Name|email|ssh-host-alias"`
+
+---
+
+## 🐛 Troubleshooting
+
+### Commands Not Found
+
+| Issue | Solution |
+|-------|----------|
+| `eza: command not found` | `sudo pacman -S eza` |
+| `zoxide: command not found` | `sudo pacman -S zoxide` |
+| `fnm: command not found` | `curl -fsSL https://fnm.vercel.app/install \| bash` |
+| `clang: command not found` | `sudo pacman -S clang` |
+
+### Git Functions Not Working
+
+**Check your Git configuration:**
+```bash
+# View current config
+git config --list | grep user
+
+# Ensure SSH keys are set up
+ls -la ~/.ssh
+```
+
+**Set up SSH keys for multiple accounts:**
+```bash
+# Generate keys for each account
+ssh-keygen -t ed25519 -C "personal@email.com" -f ~/.ssh/id_ed25519_personal
+ssh-keygen -t ed25519 -C "work@email.com" -f ~/.ssh/id_ed25519_work
+
+# Configure ~/.ssh/config
+cat >> ~/.ssh/config << 'EOF'
+Host github.com-personal
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519_personal
+
+Host github.com-kampus
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/id_ed25519_kampus
+EOF
+```
+
+### Slow Shell Startup
+
+1. Check which tools are actually installed:
+```bash
+command -v fnm zoxide eza
+```
+
+2. Comment out initializations you don't use:
+```bash
+# Example: If you don't use Bun
+# [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+```
+
+### PATH Issues
+
+The configuration uses `typeset -U path` to prevent duplicates automatically. If you still see issues:
+
+```bash
+# Check current PATH
+echo $PATH | tr ':' '\n'
+
+# Reset and reload
+unset PATH
+exec zsh
 ```
 
 ---
 
-## 🧠 Best Practices
+## 💡 Tips & Tricks
 
-1. **Backup Regular**: Gunakan `zpush "update message"` untuk backup otomatis
-2. **Update Tools**: Update Oh My Zsh dan plugins secara berkala
-   ```bash
-   omz update
-   ```
-3. **Clean History**: Set `HIST_STAMPS="yyyy-mm-dd"` untuk history yang rapi
-4. **Safe Editing**: Edit `.zshrc` dengan `zconfig`, test dengan `source ~/.zshrc`
+### Using Zoxide Efficiently
+```bash
+# After visiting directories a few times
+z docs          # Jump to ~/Documents
+z proj          # Jump to ~/Projects
+z down          # Jump to ~/Downloads
+
+# Zoxide learns your habits!
+```
+
+### FZF Power Features
+```bash
+Ctrl+R          # Fuzzy search command history
+Ctrl+T          # Fuzzy file finder
+Alt+C           # Fuzzy directory finder
+
+# In any command, type part of the name and hit Ctrl+T:
+vim **<Ctrl+T>  # Opens fuzzy finder for files
+```
+
+### Git Workflow Example
+```bash
+# Start new project
+mkcd my-awesome-app
+init-repo personal
+echo "# My Awesome App" > README.md
+gacp "initial commit"
+
+# Later, switch to work project
+cd ~/work-project
+use-git kampus
+gacp "fix: resolve authentication bug"
+```
+
+### Multi-Account SSH Setup
+```bash
+# Clone with specific account
+git clone git@github.com-personal:username/repo.git
+git clone git@github.com-kampus:username/repo.git
+
+# The use-git function handles remote URL switching automatically!
+```
 
 ---
 
-## 🔥 Pro Tips
+## 🎓 Learning Resources
 
-- **Quick Navigation**: Gunakan `z` (dari zoxide) untuk jump ke direktori favorit
-- **FZF Search**: `Ctrl+R` untuk search command history dengan fuzzy finder
-- **Git Shortcuts**: Combine `ga` + `gacp` untuk workflow super cepat
-- **Node Version**: FNM auto-switch Node version berdasarkan `.node-version` atau `.nvmrc`
+### ZSH
+- [ZSH Documentation](http://zsh.sourceforge.net/Doc/)
+- [CachyOS ZSH Guide](https://wiki.cachyos.org/)
 
----
-
-## 📚 Resources
-
-- [Oh My Zsh Documentation](https://github.com/ohmyzsh/ohmyzsh/wiki)
-- [Powerlevel10k](https://github.com/romkatv/powerlevel10k)
-- [ZSH Plugin Standard](https://zdharma-continuum.github.io/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html)
+### Modern CLI Tools
+- [Eza GitHub](https://github.com/eza-community/eza)
+- [Zoxide GitHub](https://github.com/ajeetdsouza/zoxide)
+- [FZF Documentation](https://github.com/junegunn/fzf)
 - [FNM Documentation](https://github.com/Schniz/fnm)
-- [Zoxide Documentation](https://github.com/ajeetdsouza/zoxide)
+
+### Git Multi-Account Setup
+- [GitHub Multiple SSH Keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
+- [Git Configuration Guide](https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration)
 
 ---
 
-## 🧑‍💻 Author
+## 🤝 Contributing
 
-**Ryoukaii**  
-🧠 Linux Enthusiast • ⚡ Performance Optimizer • 🔒 Security Aware
+Found a bug or have a suggestion?
 
-> *"Your terminal is a reflection of your workflow. Keep it fast, secure, and elegant."* 🪶
+1. **Fork this repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Commit your changes**: `git commit -m 'feat: add amazing feature'`
+4. **Push to branch**: `git push origin feature/amazing-feature`
+5. **Open a Pull Request**
+
+---
+
+## 📋 Changelog
+
+### Version 1.0.0 (2025-01-31)
+- ✨ Initial release
+- ✅ Multi-account Git workflow
+- ✅ C programming helpers
+- ✅ Modern CLI integrations
+- ✅ Comprehensive documentation
+- ✅ Smart error handling
+
+---
+
+## 🙏 Acknowledgments
+
+- **CachyOS Team** - For the excellent base ZSH configuration
+- **Oh-My-Zsh Community** - For the plugin ecosystem
+- **Eza/Zoxide/FNM Authors** - For modern CLI tools
+- All open-source contributors who make our terminals better
 
 ---
 
 ## 📄 License
 
-MIT License - Feel free to use and modify!
+MIT License - Feel free to use, modify, and distribute!
+
+```
+Copyright (c) 2025 Budi Imam Prasetyo
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+```
 
 ---
 
-🔥 *Optimize your terminal, optimize your productivity.*
+## 🧑‍💻 Author
+
+**Budi Imam Prasetyo (Ryoukaii)**  
+🐧 CachyOS Enthusiast • ⚡ Performance Optimizer • 🔒 Security Aware
+
+> *"A well-configured terminal is a developer's best friend. Keep it fast, clean, and powerful."*
+
+---
+
+<div align="center">
+
+### ⭐ If this helped you, consider starring the repo!
+
+**Made with ❤️ for the CachyOS community**
+
+[Report Bug](https://github.com/YOUR_USERNAME/ZSH-Config/issues) • [Request Feature](https://github.com/YOUR_USERNAME/ZSH-Config/issues) • [Documentation](https://github.com/YOUR_USERNAME/ZSH-Config/wiki)
+
+</div>
+
+---
+
+🔥 **Happy coding with CachyOS!** 🚀

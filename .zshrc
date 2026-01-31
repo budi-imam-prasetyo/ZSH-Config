@@ -6,70 +6,108 @@
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🔌 PLUGINS & BASE CONFIG                                                     │
 # └──────────────────────────────────────────────────────────────────────────────┘
-plugins=(git fzf extract)
+# Load Oh-My-Zsh plugins for enhanced functionality
+plugins=(
+  git      # Git shortcuts and status in prompt
+  fzf      # Fuzzy finder integration (Ctrl+R for history, Ctrl+T for files)
+  extract  # Smart archive extraction with 'x' command
+)
+
+# Load CachyOS base configuration (provides theme, completions, etc.)
 source /usr/share/cachyos-zsh-config/cachyos-config.zsh
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🌍 ENVIRONMENT & PATH                                                        │
 # └──────────────────────────────────────────────────────────────────────────────┘
+# Ensure no duplicate paths (-U flag)
 typeset -U path
-path=($HOME/{bin,.local/bin,.fnm,.local/share/fnm,.cargo/bin,.bun/bin} $path)
+
+# Add custom binary directories to PATH
+# Order matters: first paths have priority
+path=(
+  $HOME/bin                    # Personal scripts
+  $HOME/.local/bin             # User-installed binaries
+  $HOME/.fnm                   # Fast Node Manager
+  $HOME/.local/share/fnm       # FNM shared files
+  $HOME/.cargo/bin             # Rust binaries
+  $HOME/.bun/bin               # Bun runtime
+  $path                        # Keep existing PATH entries
+)
 export PATH
 
-# Tool Initializations (lazy-load style)
-(( $+commands[fnm] ))    && eval "$(fnm env --use-on-cd --shell zsh)"
+# ── Tool Initializations ──────────────────────────────────────────────────────
+# Initialize tools only if they're installed (lazy-load for faster startup)
+
+# Fast Node Manager - Node.js version manager
+(( $+commands[fnm] )) && eval "$(fnm env --use-on-cd --shell zsh)"
+
+# Zoxide - Smarter cd command (learns your habits, use with 'z <dir>')
 (( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
+
+# Bun completions
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ ⚙️  ZSH OPTIONS                                                              │
 # └──────────────────────────────────────────────────────────────────────────────┘
+# Configure history timestamp format (shown with 'history' command)
 HIST_STAMPS="yyyy-mm-dd"
-setopt AUTO_CD              # cd tanpa ketik 'cd'
-setopt AUTO_PUSHD           # cd otomatis push ke stack
-setopt PUSHD_IGNORE_DUPS    # Tidak duplikat di stack
-setopt CORRECT              # Koreksi typo command
-setopt INTERACTIVE_COMMENTS # Komentar di terminal
+
+# Quality of life improvements
+setopt AUTO_CD              # Type directory name to cd into it (no 'cd' needed)
+setopt AUTO_PUSHD           # Make cd push old directory onto directory stack
+setopt PUSHD_IGNORE_DUPS    # Don't push duplicate directories onto stack
+setopt CORRECT              # Suggest corrections for typos in commands
+setopt INTERACTIVE_COMMENTS # Allow comments in interactive shell (# comment)
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🎨 ALIASES                                                                   │
 # └──────────────────────────────────────────────────────────────────────────────┘
 
-# ── File & Navigation ─────────────────────────────────────────────────────────
-alias ls='eza --icons --group-directories-first'
-alias ll='eza -lh --icons --git'
-alias la='eza -la --icons --git'
-alias lt='eza -T --icons --level=2'       # Tree view
-alias lta='eza -Ta --icons --level=2'     # Tree all
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-alias -- -='cd -'                         # Kembali ke dir sebelumnya
+# ── File Listing & Navigation ─────────────────────────────────────────────────
+# Using 'eza' - modern replacement for 'ls' with icons and git integration
 
-# ── Quick Access ──────────────────────────────────────────────────────────────
-alias dl='cd /home/data/$USER/Downloads'
-alias desk='cd ~/Desktop'
-alias proj='cd ~/Projects 2>/dev/null || cd ~/Kuliah'
+alias ls='eza --icons --group-directories-first'  # Basic listing with icons
+alias ll='eza -lh --icons --git'                  # Long format with git status
+alias la='eza -la --icons --git'                  # Show hidden files
+alias lt='eza -T --icons --level=2'               # Tree view (2 levels)
+alias lta='eza -Ta --icons --level=2'             # Tree view with hidden files
 
-# ── System & Tools ────────────────────────────────────────────────────────────
-alias x='exit'
-alias q='exit'
-alias zconfig='${EDITOR:-code} ~/.zshrc'
-alias zreload='exec zsh && echo "✅ ZSH reloaded!"'
-alias ports='ss -tulanp'
-alias myip='curl -s ifconfig.me && echo'
-alias weather='curl -s "wttr.in/?format=3"'
-alias diskspace='df -h | grep -E "^/dev"'
-alias meminfo='free -h'
+# Quick directory navigation
+alias ..='cd ..'                  # Go up one directory
+alias ...='cd ../..'              # Go up two directories
+alias ....='cd ../../..'          # Go up three directories
+alias -- -='cd -'                 # Return to previous directory
 
-# ── Development ───────────────────────────────────────────────────────────────
-alias ga='git add .'
-alias gs='git status -sb'
-alias gl='git log --oneline -15'
-alias gd='git diff'
-alias serve='php artisan serve'
-alias dev='npm run dev'
-alias build='npm run build'
+# ── Quick Access Shortcuts ────────────────────────────────────────────────────
+alias dl='cd /home/data/$USER/Downloads'          # Jump to Downloads
+alias desk='cd ~/Desktop'                         # Jump to Desktop
+alias proj='cd ~/Projects 2>/dev/null || cd ~/Kuliah'  # Projects or Kuliah folder
+
+# ── System & Productivity Tools ───────────────────────────────────────────────
+alias x='exit'                    # Quick exit
+alias q='exit'                    # Alternative quick exit
+alias zconfig='${EDITOR:-code} ~/.zshrc'          # Edit this config (default: VS Code)
+alias zreload='exec zsh && echo "✅ ZSH reloaded!"'  # Reload shell configuration
+
+# Network & System Info
+alias ports='ss -tulanp'                          # Show all open ports
+alias myip='curl -s ifconfig.me && echo'          # Get public IP address
+alias weather='curl -s "wttr.in/?format=3"'       # Quick weather info
+alias diskspace='df -h | grep -E "^/dev"'         # Show disk usage
+alias meminfo='free -h'                           # Show memory usage
+
+# ── Development Shortcuts ─────────────────────────────────────────────────────
+# Git shortcuts (additional to plugin)
+alias ga='git add .'                # Stage all changes
+alias gs='git status -sb'           # Short status with branch info
+alias gl='git log --oneline -15'    # Show last 15 commits (compact)
+alias gd='git diff'                 # Show changes
+
+# Framework shortcuts
+alias serve='php artisan serve'     # Laravel development server
+alias dev='npm run dev'             # Start development server (Vite/Webpack)
+alias build='npm run build'         # Build for production
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🛠️  FUNCTIONS                                                                │
@@ -77,13 +115,25 @@ alias build='npm run build'
 
 # ── Directory Operations ──────────────────────────────────────────────────────
 
-# Buat direktori dan langsung masuk
-mkcd() { mkdir -p "$1" && cd "$1" }
+# mkcd - Make directory and cd into it
+# Usage: mkcd my-new-project
+mkcd() { 
+  mkdir -p "$1" && cd "$1" 
+}
 
-# Ekstrak berbagai format arsip
+# extract - Extract any archive format automatically
+# Usage: extract archive.zip
+# Supports: .tar.bz2, .tar.gz, .tar.xz, .tar, .bz2, .gz, .zip, .rar, .7z
 extract() {
-  [[ -z "$1" ]] && { echo "⚠️  Usage: extract <file>"; return 1 }
-  [[ ! -f "$1" ]] && { echo "❌ File tidak ditemukan: $1"; return 1 }
+  if [[ -z "$1" ]]; then
+    echo "⚠️  Usage: extract <file>"
+    return 1
+  fi
+  
+  if [[ ! -f "$1" ]]; then
+    echo "❌ File not found: $1"
+    return 1
+  fi
   
   case "$1" in
     *.tar.bz2) tar xjf "$1"    ;;
@@ -95,24 +145,40 @@ extract() {
     *.zip)     unzip "$1"      ;;
     *.rar)     unrar x "$1"    ;;
     *.7z)      7z x "$1"       ;;
-    *)         echo "❌ Format tidak didukung: $1" ;;
+    *)         echo "❌ Unsupported format: $1" ;;
   esac
 }
 
-# ── C Programming ─────────────────────────────────────────────────────────────
+# ── C Programming Helper Functions ───────────────────────────────────────────
 
+# compile - Compile and run C programs in one command
+# Usage: compile program.c [args for program]
+# Example: compile hello.c
+#          compile calculator.c 5 10
 compile() {
-  [[ -z "$1" ]] && { echo "⚠️  Usage: compile <file.c> [args...]"; return 1 }
-  [[ ! -f "$1" ]] && { echo "❌ File tidak ditemukan: $1"; return 1 }
+  if [[ -z "$1" ]]; then
+    echo "⚠️  Usage: compile <file.c> [program arguments...]"
+    return 1
+  fi
   
-  local src="$1" out="${1%.c}"
-  shift  # Args sisanya untuk program
+  if [[ ! -f "$1" ]]; then
+    echo "❌ File not found: $1"
+    return 1
+  fi
   
-  (( ! $+commands[clang] )) && { echo "❌ Install clang: sudo pacman -S clang"; return 1 }
+  local src="$1"
+  local out="${1%.c}"  # Remove .c extension for output
+  shift  # Remaining args are for the program
+  
+  # Check if clang is installed
+  if (( ! $+commands[clang] )); then
+    echo "❌ clang not found. Install with: sudo pacman -S clang"
+    return 1
+  fi
   
   echo "🛠️  Compiling: $src"
   if clang -Wall -Wextra -std=c99 -g "$src" -o "$out"; then
-    echo "✅ Output: $out"
+    echo "✅ Output binary: $out"
     echo "🚀 Running...\n"
     "./$out" "$@"
   else
@@ -121,46 +187,67 @@ compile() {
   fi
 }
 
-# Compile dengan debug info untuk GDB
+# debug-compile - Compile with debug symbols and AddressSanitizer
+# Usage: debug-compile program.c
+# Run with: gdb ./program
 debug-compile() {
-  [[ -z "$1" ]] && { echo "⚠️  Usage: debug-compile <file.c>"; return 1 }
-  local src="$1" out="${1%.c}"
+  if [[ -z "$1" ]]; then
+    echo "⚠️  Usage: debug-compile <file.c>"
+    return 1
+  fi
+  
+  local src="$1"
+  local out="${1%.c}"
   
   clang -Wall -Wextra -std=c99 -g -O0 -fsanitize=address "$src" -o "$out" && \
-    echo "✅ Debug build: $out (run with: gdb ./$out)"
+    echo "✅ Debug build created: $out\n💡 Run with: gdb ./$out"
 }
 
-# ── Git Workflow ──────────────────────────────────────────────────────────────
+# ── Git Workflow Functions ────────────────────────────────────────────────────
 
-# Git config untuk multi-akun
+# Multi-account Git configuration
+# Format: "Name|email|ssh-host-alias"
 typeset -A GIT_ACCOUNTS
 GIT_ACCOUNTS=(
   [personal]="Budi Imam Prasetyo|budiimamprsty@gmail.com|github.com-personal"
   [kampus]="Budi Prasetyo|budi.prasetyo@satu.ac.id|github.com-kampus"
 )
 
-# Quick commit & push
+# gacp - Git Add, Commit, and Push in one command
+# Usage: gacp "your commit message"
+# Automatically detects internet connection and pushes only if online
 gacp() {
-  [[ -z "$1" ]] && { echo "⚠️  Usage: gacp \"commit message\""; return 1 }
+  if [[ -z "$1" ]]; then
+    echo "⚠️  Usage: gacp \"commit message\""
+    return 1
+  fi
   
   local branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-  [[ -z "$branch" ]] && { echo "❌ Not a Git repository!"; return 1 }
+  if [[ -z "$branch" ]]; then
+    echo "❌ Not a Git repository!"
+    return 1
+  fi
   
-  echo "📦 Committing to: $branch"
+  echo "📦 Committing to branch: $branch"
   git add . && git commit -m "$1" || return 1
   
-  # Check internet & push
+  # Check internet connectivity before pushing
   if curl -s --connect-timeout 2 https://github.com >/dev/null 2>&1; then
-    git push -u origin "$branch" && echo "🚀 Pushed to $branch!"
+    git push -u origin "$branch" && echo "🚀 Successfully pushed to $branch!"
   else
-    echo "⚠️  Offline. Run 'git push' later."
+    echo "⚠️  Offline. Run 'git push' when you're back online."
   fi
 }
 
-# Initialize repo dengan akun
+# init-repo - Initialize new Git repository with specific account
+# Usage: init-repo personal   # or: init-repo kampus
 init-repo() {
   local account="${GIT_ACCOUNTS[$1]}"
-  [[ -z "$account" ]] && { echo "⚠️  Usage: init-repo <personal|kampus>"; return 1 }
+  
+  if [[ -z "$account" ]]; then
+    echo "⚠️  Usage: init-repo <personal|kampus>"
+    return 1
+  fi
   
   local name="${account%%|*}"
   local email="${${account#*|}%%|*}"
@@ -168,115 +255,231 @@ init-repo() {
   git init
   git config user.name "$name"
   git config user.email "$email"
-  echo "✅ Initialized with: $name <$email>"
+  echo "✅ Repository initialized with: $name <$email>"
 }
 
-# Switch akun di repo yang ada
+# use-git - Switch Git account in existing repository
+# Usage: use-git personal   # or: use-git kampus
+# Automatically updates remote URL if needed
 use-git() {
-  [[ ! -d .git ]] && { echo "⚠️  Not a Git repository!"; return 1 }
+  if [[ ! -d .git ]]; then
+    echo "⚠️  Not a Git repository!"
+    return 1
+  fi
   
   local account="${GIT_ACCOUNTS[$1]}"
-  [[ -z "$account" ]] && { echo "⚙️  Usage: use-git <personal|kampus>"; return 1 }
+  
+  if [[ -z "$account" ]]; then
+    echo "⚙️  Usage: use-git <personal|kampus>"
+    return 1
+  fi
   
   local name="${account%%|*}"
   local email="${${account#*|}%%|*}"
   local host="${account##*|}"
   local other_host=$([[ "$1" == "personal" ]] && echo "github.com-kampus" || echo "github.com-personal")
   
+  # Update git config
   git config user.name "$name"
   git config user.email "$email"
   
-  # Update remote URL jika perlu
+  # Update remote URL if it uses the other account's host
   local url=$(git remote get-url origin 2>/dev/null)
-  [[ "$url" == *"$other_host"* ]] && git remote set-url origin "${url/$other_host/$host}"
+  if [[ "$url" == *"$other_host"* ]]; then
+    git remote set-url origin "${url/$other_host/$host}"
+  fi
   
-  echo "✅ Switched to: $name ($1)"
+  echo "✅ Switched to: $name ($1 account)"
 }
 
-# Push .zshrc ke repo backup
+# zpush - Sync .zshrc to backup repository
+# Usage: zpush "updated aliases"
+# Backs up your ZSH config to ~/ZSH-Config repository
 zpush() {
-  [[ -z "$1" ]] && { echo "⚠️  Usage: zpush \"commit message\""; return 1 }
+  if [[ -z "$1" ]]; then
+    echo "⚠️  Usage: zpush \"commit message\""
+    return 1
+  fi
   
   local repo="$HOME/ZSH-Config"
-  [[ ! -d "$repo" ]] && { echo "❌ Repo not found: $repo"; return 1 }
+  
+  if [[ ! -d "$repo" ]]; then
+    echo "❌ Backup repository not found: $repo"
+    echo "💡 Create it with: mkdir ~/ZSH-Config && cd ~/ZSH-Config && git init"
+    return 1
+  fi
   
   cp ~/.zshrc "$repo/" && \
   git -C "$repo" add -A && \
   git -C "$repo" commit -m "$1" && \
   git -C "$repo" push && \
-  echo "✅ .zshrc synced!"
+  echo "✅ .zshrc synced to backup repository!"
 }
 
-# ── Utilities ─────────────────────────────────────────────────────────────────
+# ── Utility Functions ─────────────────────────────────────────────────────────
 
-# Convert GitHub URL ke raw.githack
+# githack - Convert GitHub URLs to raw.githack.com CDN links
+# Usage: githack https://github.com/user/repo/blob/main/script.js
+# Automatically copies to clipboard if xclip is installed
 githack() {
-  [[ -z "$1" ]] && { echo "⚠️  Usage: githack <github-url>"; return 1 }
+  if [[ -z "$1" ]]; then
+    echo "⚠️  Usage: githack <github-url>"
+    return 1
+  fi
   
-  local url="$1" out=""
+  local url="$1"
+  local out=""
   
   case "$url" in
-    *raw.githack.com*) out="$url" ;;
+    # Already a githack URL
+    *raw.githack.com*)
+      out="$url"
+      ;;
+    # raw.githubusercontent.com URL
     *raw.githubusercontent.com*)
-      [[ "$url" =~ 'raw.githubusercontent.com/([^/]+)/([^/]+)/([^/]+)/(.*)' ]] && \
+      if [[ "$url" =~ 'raw.githubusercontent.com/([^/]+)/([^/]+)/([^/]+)/(.*)' ]]; then
         out="https://raw.githack.com/${match[1]}/${match[2]}/${match[3]}/${match[4]}"
+      fi
       ;;
+    # GitHub blob URL
     *github.com*/blob/*)
-      [[ "$url" =~ 'github.com/([^/]+)/([^/]+)/blob/([^/]+)/(.*)' ]] && \
+      if [[ "$url" =~ 'github.com/([^/]+)/([^/]+)/blob/([^/]+)/(.*)' ]]; then
         out="https://raw.githack.com/${match[1]}/${match[2]}/${match[3]}/${match[4]}"
+      fi
       ;;
-    *) echo "❌ Invalid GitHub URL"; return 1 ;;
+    *)
+      echo "❌ Invalid GitHub URL"
+      return 1
+      ;;
   esac
   
   echo "🌐 $out"
-  (( $+commands[xclip] )) && echo -n "$out" | xclip -selection clipboard && echo "📋 Copied!"
+  
+  # Copy to clipboard if xclip is available
+  if (( $+commands[xclip] )); then
+    echo -n "$out" | xclip -selection clipboard
+    echo "📋 Copied to clipboard!"
+  fi
 }
 
-# Quick notes
+# note - Quick note-taking system
+# Usage:
+#   note                     # Open notes in editor
+#   note "your note here"    # Add timestamped note
+#   note -l                  # List all notes
+#   note -c                  # Clear all notes
 note() {
   local file="$HOME/.notes.md"
+  
   case "$1" in
-    -l|--list) cat "$file" 2>/dev/null || echo "No notes yet." ;;
-    -c|--clear) : > "$file" && echo "🗑️  Notes cleared!" ;;
-    "") ${EDITOR:-nano} "$file" ;;
-    *) echo "- $(date '+%Y-%m-%d %H:%M'): $*" >> "$file" && echo "📝 Note saved!" ;;
+    -l|--list)
+      if [[ -f "$file" ]]; then
+        cat "$file"
+      else
+        echo "📝 No notes yet."
+      fi
+      ;;
+    -c|--clear)
+      : > "$file"
+      echo "🗑️  All notes cleared!"
+      ;;
+    "")
+      ${EDITOR:-nano} "$file"
+      ;;
+    *)
+      echo "- $(date '+%Y-%m-%d %H:%M'): $*" >> "$file"
+      echo "📝 Note saved!"
+      ;;
   esac
 }
 
-# Benchmark command execution time
+# bench - Benchmark command execution time
+# Usage: bench npm run build
 bench() {
   local start=$(date +%s.%N)
   "$@"
   local end=$(date +%s.%N)
-  echo "\n⏱️  Elapsed: $(echo "$end - $start" | bc)s"
+  echo "\n⏱️  Execution time: $(echo "$end - $start" | bc)s"
 }
 
-# Find proses & kill
+# fkill - Fuzzy search and kill process
+# Usage: fkill
+# Opens fzf to select process, then kills it
 fkill() {
   local pid=$(ps aux | fzf --header="Select process to kill" | awk '{print $2}')
-  [[ -n "$pid" ]] && kill -9 "$pid" && echo "💀 Killed PID: $pid"
+  
+  if [[ -n "$pid" ]]; then
+    kill -9 "$pid"
+    echo "💀 Killed process with PID: $pid"
+  fi
 }
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
-# │ 📚 HELP                                                                      │
+# │ 📚 HELP & DOCUMENTATION                                                      │
 # └──────────────────────────────────────────────────────────────────────────────┘
+
+# zhelp - Display all custom commands and their usage
+# Usage: zhelp
 zhelp() {
   cat << 'EOF'
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║                           🚀 CUSTOM ZSH COMMANDS                             ║
+║                        🚀 CUSTOM ZSH COMMANDS REFERENCE                      ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
-║ NAVIGATION          │ DEVELOPMENT         │ GIT                              ║
-║ ─────────────────── │ ─────────────────── │ ────────────────────────────────-║
-║ mkcd <dir>          │ compile <file.c>    │ gacp "msg"   - add,commit,push   ║
-║ extract <archive>   │ debug-compile <.c>  │ init-repo <personal|kampus>      ║
-║ lt / lta            │ bench <cmd>         │ use-git <personal|kampus>        ║
-║ dl / desk / proj    │ dev / serve / build │ zpush "msg"  - sync .zshrc       ║
+║                                                                              ║
+║  📁 FILE & NAVIGATION                                                        ║
+║  ───────────────────────────────────────────────────────────────────────     ║
+║  mkcd <dir>           Create directory and cd into it                        ║
+║  extract <file>       Extract any archive format automatically               ║
+║  lt / lta             Tree view (2 levels) with/without hidden files         ║
+║  dl / desk / proj     Quick jump to Downloads / Desktop / Projects           ║
+║  .. / ... / ....      Navigate up 1/2/3 directories                          ║
+║  -                    Return to previous directory                           ║
+║                                                                              ║
+║  💻 DEVELOPMENT                                                              ║
+║  ───────────────────────────────────────────────────────────────────────     ║
+║  compile <file.c> [args]    Compile and run C program                        ║
+║  debug-compile <file.c>     Compile with debug symbols for GDB              ║
+║  bench <command>            Measure command execution time                   ║
+║  dev / serve / build        Start dev server / Laravel serve / production    ║
+║                                                                              ║
+║  🔧 GIT WORKFLOW                                                             ║
+║  ───────────────────────────────────────────────────────────────────────     ║
+║  gacp "message"             Git add, commit, and push (one command)          ║
+║  init-repo <personal|kampus>   Initialize repo with specific account        ║
+║  use-git <personal|kampus>     Switch Git account in current repo           ║
+║  zpush "message"            Sync .zshrc to backup repository                 ║
+║  ga / gs / gl / gd          Git shortcuts (add, status, log, diff)           ║
+║                                                                              ║
+║  🛠️  UTILITIES                                                               ║
+║  ───────────────────────────────────────────────────────────────────────     ║
+║  githack <url>              Convert GitHub URL to CDN link                   ║
+║  note [text]                Quick note-taking (add/edit/list/clear)          ║
+║    note "text"              Add timestamped note                             ║
+║    note -l                  List all notes                                   ║
+║    note -c                  Clear all notes                                  ║
+║  fkill                      Fuzzy search and kill process                    ║
+║                                                                              ║
+║  ℹ️  SYSTEM INFO                                                             ║
+║  ───────────────────────────────────────────────────────────────────────     ║
+║  myip                       Show public IP address                           ║
+║  weather                    Get current weather                              ║
+║  ports                      List all open ports                              ║
+║  diskspace                  Show disk usage                                  ║
+║  meminfo                    Show memory usage                                ║
+║                                                                              ║
+║  ⚙️  CONFIG                                                                   ║
+║  ───────────────────────────────────────────────────────────────────────     ║
+║  zconfig                    Edit this configuration                          ║
+║  zreload                    Reload ZSH configuration                         ║
+║  zhelp                      Show this help message                           ║
+║  x / q                      Exit terminal                                    ║
+║                                                                              ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
-║ UTILITIES           │ SYSTEM                                                 ║
-║ ─────────────────── │ ────────────────────────────────────────────────────── ║
-║ githack <url>       │ myip / weather / ports / diskspace / meminfo           ║
-║ note [-l|-c] [txt]  │ zconfig / zreload / zhelp                              ║
-║ fkill               │ x / q (exit)                                           ║
+║  💡 TIP: Run 'zhelp' anytime to see this reference!                          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 EOF
 }
+
+# Show welcome message with quick tips (optional - comment out if not needed)
+# Uncomment the lines below to show tips on shell startup
+# echo "✨ Custom ZSH config loaded! Type 'zhelp' for available commands."
