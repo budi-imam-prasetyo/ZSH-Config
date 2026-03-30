@@ -1,3 +1,10 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║                     🚀 PERSONAL ZSH CONFIG FOR CACHYOS                       ║
 # ║                  Extends: cachyos-config.zsh (system-wide)                   ║
@@ -24,7 +31,9 @@ typeset -U path
 
 # Add custom binary directories to PATH
 # Order matters: first paths have priority
+export JAVA_HOME=/usr/lib/jvm/default
 path=(
+  $JAVA_HOME/bin
   $HOME/bin                    # Personal scripts
   $HOME/.local/bin             # User-installed binaries
   $HOME/.fnm                   # Fast Node Manager
@@ -85,9 +94,10 @@ alias desk='cd ~/Desktop'                         # Jump to Desktop
 alias proj='cd ~/Projects 2>/dev/null || cd ~/Kuliah'  # Projects or Kuliah folder
 
 # ── System & Productivity Tools ───────────────────────────────────────────────
+alias c='clear'                    # Clear terminal screen
 alias x='exit'                    # Quick exit
 alias q='exit'                    # Alternative quick exit
-alias zconfig='${EDITOR:-code} ~/.zshrc'          # Edit this config (default: VS Code)
+alias zconfig='code ~/.zshrc'          # Edit this config (default: VS Code)
 alias zreload='exec zsh && echo "✅ ZSH reloaded!"'  # Reload shell configuration
 
 # Network & System Info
@@ -96,6 +106,7 @@ alias myip='curl -s ifconfig.me && echo'          # Get public IP address
 alias weather='curl -s "wttr.in/?format=3"'       # Quick weather info
 alias diskspace='df -h | grep -E "^/dev"'         # Show disk usage
 alias meminfo='free -h'                           # Show memory usage
+alias cd='z'
 
 # ── Development Shortcuts ─────────────────────────────────────────────────────
 # Git shortcuts (additional to plugin)
@@ -109,6 +120,8 @@ alias serve='php artisan serve'     # Laravel development server
 alias dev='npm run dev'             # Start development server (Vite/Webpack)
 alias build='npm run build'         # Build for production
 
+alias rmnoext='find . -type f ! -name "*.*" -exec rm -i {} \;'
+
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🛠️  FUNCTIONS                                                                │
 # └──────────────────────────────────────────────────────────────────────────────┘
@@ -117,8 +130,8 @@ alias build='npm run build'         # Build for production
 
 # mkcd - Make directory and cd into it
 # Usage: mkcd my-new-project
-mkcd() { 
-  mkdir -p "$1" && cd "$1" 
+mkcd() {
+  mkdir -p "$1" && cd "$1"
 }
 
 # extract - Extract any archive format automatically
@@ -129,12 +142,12 @@ extract() {
     echo "⚠️  Usage: extract <file>"
     return 1
   fi
-  
+
   if [[ ! -f "$1" ]]; then
     echo "❌ File not found: $1"
     return 1
   fi
-  
+
   case "$1" in
     *.tar.bz2) tar xjf "$1"    ;;
     *.tar.gz)  tar xzf "$1"    ;;
@@ -157,35 +170,43 @@ extract() {
 #          compile calculator.c 5 10
 compile() {
   if [[ -z "$1" ]]; then
-    echo "⚠️  Usage: compile <file.c> [program arguments...]"
+    echo "Usage: compile <file.c> [program arguments...]"
     return 1
   fi
-  
-  if [[ ! -f "$1" ]]; then
-    echo "❌ File not found: $1"
-    return 1
-  fi
-  
+
   local src="$1"
-  local out="${1%.c}"  # Remove .c extension for output
-  shift  # Remaining args are for the program
-  
-  # Check if clang is installed
-  if (( ! $+commands[clang] )); then
-    echo "❌ clang not found. Install with: sudo pacman -S clang"
+
+  if [[ ! -f "$src" ]]; then
+    echo "File not found: $src"
     return 1
   fi
-  
-  echo "🛠️  Compiling: $src"
+
+  if [[ "$src" != *.c ]]; then
+    echo "Only .c files are supported"
+    return 1
+  fi
+
+  if (( ! $+commands[clang] )); then
+    echo "clang not found. Install with: sudo pacman -S clang"
+    return 1
+  fi
+
+  local out="${src%.c}"
+  shift
+
+  echo "Compiling: $src"
+
   if clang -Wall -Wextra -std=c99 -g "$src" -o "$out"; then
-    echo "✅ Output binary: $out"
-    echo "🚀 Running...\n"
+    echo "Output: $out"
+    echo
     "./$out" "$@"
+    return $?
   else
-    echo "❌ Compilation failed!"
+    echo "Compilation failed"
     return 1
   fi
 }
+
 
 # debug-compile - Compile with debug symbols and AddressSanitizer
 # Usage: debug-compile program.c
@@ -195,10 +216,10 @@ debug-compile() {
     echo "⚠️  Usage: debug-compile <file.c>"
     return 1
   fi
-  
+
   local src="$1"
   local out="${1%.c}"
-  
+
   clang -Wall -Wextra -std=c99 -g -O0 -fsanitize=address "$src" -o "$out" && \
     echo "✅ Debug build created: $out\n💡 Run with: gdb ./$out"
 }
@@ -221,16 +242,16 @@ gacp() {
     echo "⚠️  Usage: gacp \"commit message\""
     return 1
   fi
-  
+
   local branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
   if [[ -z "$branch" ]]; then
     echo "❌ Not a Git repository!"
     return 1
   fi
-  
+
   echo "📦 Committing to branch: $branch"
   git add . && git commit -m "$1" || return 1
-  
+
   # Check internet connectivity before pushing
   if curl -s --connect-timeout 2 https://github.com >/dev/null 2>&1; then
     git push -u origin "$branch" && echo "🚀 Successfully pushed to $branch!"
@@ -243,15 +264,15 @@ gacp() {
 # Usage: init-repo personal   # or: init-repo kampus
 init-repo() {
   local account="${GIT_ACCOUNTS[$1]}"
-  
+
   if [[ -z "$account" ]]; then
     echo "⚠️  Usage: init-repo <personal|kampus>"
     return 1
   fi
-  
+
   local name="${account%%|*}"
   local email="${${account#*|}%%|*}"
-  
+
   git init
   git config user.name "$name"
   git config user.email "$email"
@@ -266,29 +287,29 @@ use-git() {
     echo "⚠️  Not a Git repository!"
     return 1
   fi
-  
+
   local account="${GIT_ACCOUNTS[$1]}"
-  
+
   if [[ -z "$account" ]]; then
     echo "⚙️  Usage: use-git <personal|kampus>"
     return 1
   fi
-  
+
   local name="${account%%|*}"
   local email="${${account#*|}%%|*}"
   local host="${account##*|}"
   local other_host=$([[ "$1" == "personal" ]] && echo "github.com-kampus" || echo "github.com-personal")
-  
+
   # Update git config
   git config user.name "$name"
   git config user.email "$email"
-  
+
   # Update remote URL if it uses the other account's host
   local url=$(git remote get-url origin 2>/dev/null)
   if [[ "$url" == *"$other_host"* ]]; then
     git remote set-url origin "${url/$other_host/$host}"
   fi
-  
+
   echo "✅ Switched to: $name ($1 account)"
 }
 
@@ -300,15 +321,15 @@ zpush() {
     echo "⚠️  Usage: zpush \"commit message\""
     return 1
   fi
-  
+
   local repo="$HOME/ZSH-Config"
-  
+
   if [[ ! -d "$repo" ]]; then
     echo "❌ Backup repository not found: $repo"
     echo "💡 Create it with: mkdir ~/ZSH-Config && cd ~/ZSH-Config && git init"
     return 1
   fi
-  
+
   cp ~/.zshrc "$repo/" && \
   git -C "$repo" add -A && \
   git -C "$repo" commit -m "$1" && \
@@ -326,10 +347,10 @@ githack() {
     echo "⚠️  Usage: githack <github-url>"
     return 1
   fi
-  
+
   local url="$1"
   local out=""
-  
+
   case "$url" in
     # Already a githack URL
     *raw.githack.com*)
@@ -352,9 +373,9 @@ githack() {
       return 1
       ;;
   esac
-  
+
   echo "🌐 $out"
-  
+
   # Copy to clipboard if xclip is available
   if (( $+commands[xclip] )); then
     echo -n "$out" | xclip -selection clipboard
@@ -370,7 +391,7 @@ githack() {
 #   note -c                  # Clear all notes
 note() {
   local file="$HOME/.notes.md"
-  
+
   case "$1" in
     -l|--list)
       if [[ -f "$file" ]]; then
@@ -407,7 +428,7 @@ bench() {
 # Opens fzf to select process, then kills it
 fkill() {
   local pid=$(ps aux | fzf --header="Select process to kill" | awk '{print $2}')
-  
+
   if [[ -n "$pid" ]]; then
     kill -9 "$pid"
     echo "💀 Killed process with PID: $pid"
@@ -483,3 +504,9 @@ EOF
 # Show welcome message with quick tips (optional - comment out if not needed)
 # Uncomment the lines below to show tips on shell startup
 # echo "✨ Custom ZSH config loaded! Type 'zhelp' for available commands."
+
+# OpenClaw Completion
+source "/home/ryoukaii/.openclaw/completions/openclaw.zsh"
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
