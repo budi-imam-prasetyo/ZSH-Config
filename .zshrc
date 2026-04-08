@@ -88,11 +88,6 @@ alias ...='cd ../..'              # Go up two directories
 alias ....='cd ../../..'          # Go up three directories
 alias -- -='cd -'                 # Return to previous directory
 
-# ── Quick Access Shortcuts ────────────────────────────────────────────────────
-alias dl='cd /home/data/$USER/Downloads'          # Jump to Downloads
-alias desk='cd ~/Desktop'                         # Jump to Desktop
-alias proj='cd ~/Projects 2>/dev/null || cd ~/Kuliah'  # Projects or Kuliah folder
-
 # ── System & Productivity Tools ───────────────────────────────────────────────
 alias c='clear'                    # Clear terminal screen
 alias x='exit'                    # Quick exit
@@ -114,11 +109,6 @@ alias ga='git add .'                # Stage all changes
 alias gs='git status -sb'           # Short status with branch info
 alias gl='git log --oneline -15'    # Show last 15 commits (compact)
 alias gd='git diff'                 # Show changes
-
-# Framework shortcuts
-alias serve='php artisan serve'     # Laravel development server
-alias dev='npm run dev'             # Start development server (Vite/Webpack)
-alias build='npm run build'         # Build for production
 
 alias rmnoext='find . -type f ! -name "*.*" -exec rm -i {} \;'
 
@@ -223,16 +213,6 @@ debug-compile() {
   clang -Wall -Wextra -std=c99 -g -O0 -fsanitize=address "$src" -o "$out" && \
     echo "✅ Debug build created: $out\n💡 Run with: gdb ./$out"
 }
-
-# ── Git Workflow Functions ────────────────────────────────────────────────────
-
-# Multi-account Git configuration
-# Format: "Name|email|ssh-host-alias"
-typeset -A GIT_ACCOUNTS
-GIT_ACCOUNTS=(
-  [personal]="Budi Imam Prasetyo|budiimamprsty@gmail.com|github.com-personal"
-  [kampus]="Budi Prasetyo|budi.prasetyo@satu.ac.id|github.com-kampus"
-)
 
 # gacp - Git Add, Commit, and Push in one command
 # Usage: gacp "your commit message"
@@ -504,9 +484,6 @@ EOF
 # Show welcome message with quick tips (optional - comment out if not needed)
 # Uncomment the lines below to show tips on shell startup
 # echo "✨ Custom ZSH config loaded! Type 'zhelp' for available commands."
-
-# OpenClaw Completion
-source "/home/ryoukaii/.openclaw/completions/openclaw.zsh"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
