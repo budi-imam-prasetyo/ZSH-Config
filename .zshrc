@@ -1,115 +1,100 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block; everything else may go below.
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║                     🚀 PERSONAL ZSH CONFIG FOR CACHYOS                       ║
-# ║                  Extends: cachyos-config.zsh (system-wide)                   ║
+# ║                     🚀 KONFIGURASI ZSH PRIBADI - CACHYOS                     ║
+# ║                  Memperluas: cachyos-config.zsh (sistem)                     ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
-# │ 🔌 PLUGINS & BASE CONFIG                                                     │
+# │ 🔌 PLUGIN & KONFIGURASI DASAR                                                │
 # └──────────────────────────────────────────────────────────────────────────────┘
-# Load Oh-My-Zsh plugins for enhanced functionality
 plugins=(
-  git      # Git shortcuts and status in prompt
-  fzf      # Fuzzy finder integration (Ctrl+R for history, Ctrl+T for files)
-  extract  # Smart archive extraction with 'x' command
+  git      # Pintasan git & status di prompt
+  fzf      # Fuzzy finder (Ctrl+R: riwayat, Ctrl+T: file)
+  extract  # Ekstrak arsip dengan perintah 'x'
 )
 
-# Load CachyOS base configuration (provides theme, completions, etc.)
 source /usr/share/cachyos-zsh-config/cachyos-config.zsh
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🌍 ENVIRONMENT & PATH                                                        │
 # └──────────────────────────────────────────────────────────────────────────────┘
-# Ensure no duplicate paths (-U flag)
-typeset -U path
+typeset -U path  # Cegah duplikasi path
 
-# Add custom binary directories to PATH
-# Order matters: first paths have priority
 export JAVA_HOME=/usr/lib/jvm/default
 path=(
   $JAVA_HOME/bin
-  $HOME/bin                    # Personal scripts
-  $HOME/.local/bin             # User-installed binaries
-  $HOME/.fnm                   # Fast Node Manager
-  $HOME/.local/share/fnm       # FNM shared files
-  $HOME/.cargo/bin             # Rust binaries
-  $HOME/.bun/bin               # Bun runtime
-  $path                        # Keep existing PATH entries
+  $HOME/bin           # Skrip pribadi
+  $HOME/.local/bin    # Binary user-install
+  $HOME/.fnm          # Fast Node Manager
+  $HOME/.local/share/fnm
+  $HOME/.cargo/bin    # Binary Rust
+  $HOME/.bun/bin      # Runtime Bun
+  $path
 )
 export PATH
 
-# ── Tool Initializations ──────────────────────────────────────────────────────
-# Initialize tools only if they're installed (lazy-load for faster startup)
+# ── Inisialisasi Tool ─────────────────────────────────────────────────────────
+# Hanya diload jika tersedia (mempercepat startup)
 
-# Fast Node Manager - Node.js version manager
-(( $+commands[fnm] )) && eval "$(fnm env --use-on-cd --shell zsh)"
-
-# Zoxide - Smarter cd command (learns your habits, use with 'z <dir>')
-(( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
-
-# Bun completions
-[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+(( $+commands[fnm] ))    && eval "$(fnm env --use-on-cd --shell zsh)"  # Node.js version manager
+(( $+commands[zoxide] )) && eval "$(zoxide init zsh)"                  # cd pintar
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"                   # Bun completions
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
-# │ ⚙️  ZSH OPTIONS                                                              │
+# │ ⚙️  OPSI ZSH                                                                 │
 # └──────────────────────────────────────────────────────────────────────────────┘
-# Configure history timestamp format (shown with 'history' command)
 HIST_STAMPS="yyyy-mm-dd"
 
-# Quality of life improvements
-setopt AUTO_CD              # Type directory name to cd into it (no 'cd' needed)
-setopt AUTO_PUSHD           # Make cd push old directory onto directory stack
-setopt PUSHD_IGNORE_DUPS    # Don't push duplicate directories onto stack
-setopt CORRECT              # Suggest corrections for typos in commands
-setopt INTERACTIVE_COMMENTS # Allow comments in interactive shell (# comment)
+setopt AUTO_CD              # Ketik nama folder langsung masuk (tanpa 'cd')
+setopt AUTO_PUSHD           # cd otomatis push direktori lama ke stack
+setopt PUSHD_IGNORE_DUPS    # Jangan push direktori duplikat
+setopt CORRECT              # Sarankan koreksi typo perintah
+setopt INTERACTIVE_COMMENTS # Izinkan komentar (#) di shell interaktif
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
-# │ 🎨 ALIASES                                                                   │
+# │ 🎨 ALIAS                                                                     │
 # └──────────────────────────────────────────────────────────────────────────────┘
 
-# ── File Listing & Navigation ─────────────────────────────────────────────────
-# Using 'eza' - modern replacement for 'ls' with icons and git integration
+# ── Listing & Navigasi ────────────────────────────────────────────────────────
+# Menggunakan 'eza' — pengganti modern untuk 'ls'
 
-alias ls='eza --icons --group-directories-first'  # Basic listing with icons
-alias ll='eza -lh --icons --git'                  # Long format with git status
-alias la='eza -la --icons --git'                  # Show hidden files
-alias lt='eza -T --icons --level=2'               # Tree view (2 levels)
-alias lta='eza -Ta --icons --level=2'             # Tree view with hidden files
+alias ls='eza --icons --group-directories-first'  # Listing dasar
+alias ll='eza -lh --icons --git'                  # Format panjang + status git
+alias la='eza -la --icons --git'                  # Tampilkan file tersembunyi
+alias lt='eza -T --icons --level=2'               # Tampilan tree 2 level
+alias lta='eza -Ta --icons --level=2'             # Tree + file tersembunyi
 
-# Quick directory navigation
-alias ..='cd ..'                  # Go up one directory
-alias ...='cd ../..'              # Go up two directories
-alias ....='cd ../../..'          # Go up three directories
-alias -- -='cd -'                 # Return to previous directory
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias -- -='cd -'          # Kembali ke direktori sebelumnya
 
-# ── System & Productivity Tools ───────────────────────────────────────────────
-alias c='clear'                    # Clear terminal screen
-alias x='exit'                    # Quick exit
-alias q='exit'                    # Alternative quick exit
-alias zconfig='code ~/.zshrc'          # Edit this config (default: VS Code)
-alias zreload='exec zsh && echo "✅ ZSH reloaded!"'  # Reload shell configuration
+# ── Sistem & Produktivitas ────────────────────────────────────────────────────
+alias c='clear'
+alias x='exit'
+alias q='exit'
+alias zconfig='code ~/.zshrc'                        # Edit konfigurasi ini
+alias zreload='exec zsh && echo "✅ ZSH direload!"'  # Reload konfigurasi shell
 
-# Network & System Info
-alias ports='ss -tulanp'                          # Show all open ports
-alias myip='curl -s ifconfig.me && echo'          # Get public IP address
-alias weather='curl -s "wttr.in/?format=3"'       # Quick weather info
-alias diskspace='df -h | grep -E "^/dev"'         # Show disk usage
-alias meminfo='free -h'                           # Show memory usage
-alias cd='z'
+# Info Jaringan & Sistem
+alias ports='ss -tulanp'                       # Tampilkan semua port terbuka
+alias myip='curl -s ifconfig.me && echo'       # IP publik
+alias weather='curl -s "wttr.in/?format=3"'   # Info cuaca singkat
+alias diskspace='df -h | grep -E "^/dev"'      # Penggunaan disk
+alias meminfo='free -h'                        # Penggunaan memori
+alias cd='z'                                   # Ganti cd dengan zoxide
 
-# ── Development Shortcuts ─────────────────────────────────────────────────────
-# Git shortcuts (additional to plugin)
-alias ga='git add .'                # Stage all changes
-alias gs='git status -sb'           # Short status with branch info
-alias gl='git log --oneline -15'    # Show last 15 commits (compact)
-alias gd='git diff'                 # Show changes
+# ── Pintasan Pengembangan ─────────────────────────────────────────────────────
+alias ga='git add .'          # Stage semua perubahan
+alias gs='git status -sb'     # Status singkat + info branch
+alias gl='git log --oneline -15'  # 15 commit terakhir (ringkas)
+alias gd='git diff'           # Tampilkan perubahan
 
+# Hapus file tanpa ekstensi (dengan konfirmasi)
 rmnoext() {
   files=$(fd --type f --no-ignore-vcs \
     --exclude .git \
@@ -127,179 +112,141 @@ rmnoext() {
 }
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
-# │ 🛠️  FUNCTIONS                                                                │
+# │ 🛠️  FUNGSI                                                                   │
 # └──────────────────────────────────────────────────────────────────────────────┘
 
-# ── Directory Operations ──────────────────────────────────────────────────────
-
-# mkcd - Make directory and cd into it
-# Usage: mkcd my-new-project
+# mkcd — Buat folder dan langsung masuk ke dalamnya
+# Penggunaan: mkcd nama-folder
 mkcd() {
   mkdir -p "$1" && cd "$1"
 }
 
-# extract - Extract any archive format automatically
-# Usage: extract archive.zip
-# Supports: .tar.bz2, .tar.gz, .tar.xz, .tar, .bz2, .gz, .zip, .rar, .7z
+# extract — Ekstrak semua format arsip secara otomatis
+# Penggunaan: extract arsip.zip
+# Format: .tar.bz2 .tar.gz .tar.xz .tar .bz2 .gz .zip .rar .7z
 extract() {
   if [[ -z "$1" ]]; then
-    echo "⚠️  Usage: extract <file>"
+    echo "⚠️  Penggunaan: extract <file>"
     return 1
   fi
 
   if [[ ! -f "$1" ]]; then
-    echo "❌ File not found: $1"
+    echo "❌ File tidak ditemukan: $1"
     return 1
   fi
 
   case "$1" in
-    *.tar.bz2) tar xjf "$1"    ;;
-    *.tar.gz)  tar xzf "$1"    ;;
-    *.tar.xz)  tar xJf "$1"    ;;
-    *.tar)     tar xf "$1"     ;;
-    *.bz2)     bunzip2 "$1"    ;;
-    *.gz)      gunzip "$1"     ;;
-    *.zip)     unzip "$1"      ;;
-    *.rar)     unrar x "$1"    ;;
-    *.7z)      7z x "$1"       ;;
-    *)         echo "❌ Unsupported format: $1" ;;
+    *.tar.bz2) tar xjf "$1" ;;
+    *.tar.gz)  tar xzf "$1" ;;
+    *.tar.xz)  tar xJf "$1" ;;
+    *.tar)     tar xf  "$1" ;;
+    *.bz2)     bunzip2 "$1" ;;
+    *.gz)      gunzip  "$1" ;;
+    *.zip)     unzip   "$1" ;;
+    *.rar)     unrar x "$1" ;;
+    *.7z)      7z x    "$1" ;;
+    *)         echo "❌ Format tidak didukung: $1" ;;
   esac
 }
 
-# ── C Programming Helper Functions ───────────────────────────────────────────
+# ── Fungsi C Programming ──────────────────────────────────────────────────────
 
-# compile - Compile and run C programs in one command
-# Usage: compile program.c [args for program]
-# Example: compile hello.c
-#          compile calculator.c 5 10
+# compile — Kompilasi dan jalankan program C sekaligus
+# Penggunaan: compile program.c [argumen...]
 compile() {
   if [[ -z "$1" ]]; then
-    echo "Usage: compile <file.c> [program arguments...]"
+    echo "Penggunaan: compile <file.c> [argumen...]"
     return 1
   fi
 
   local src="$1"
 
-  if [[ ! -f "$src" ]]; then
-    echo "File not found: $src"
-    return 1
-  fi
-
-  if [[ "$src" != *.c ]]; then
-    echo "Only .c files are supported"
-    return 1
-  fi
-
-  if (( ! $+commands[clang] )); then
-    echo "clang not found. Install with: sudo pacman -S clang"
-    return 1
-  fi
+  [[ ! -f "$src" ]]    && echo "File tidak ditemukan: $src" && return 1
+  [[ "$src" != *.c ]]  && echo "Hanya file .c yang didukung" && return 1
+  (( ! $+commands[clang] )) && echo "clang tidak ditemukan. Install: sudo pacman -S clang" && return 1
 
   local out="${src%.c}"
   shift
 
-  echo "Compiling: $src"
-
+  echo "Mengompilasi: $src"
   if clang -Wall -Wextra -std=c99 -g "$src" -o "$out"; then
     echo "Output: $out"
     echo
     "./$out" "$@"
-    return $?
   else
-    echo "Compilation failed"
+    echo "Kompilasi gagal"
     return 1
   fi
 }
 
-
-# debug-compile - Compile with debug symbols and AddressSanitizer
-# Usage: debug-compile program.c
-# Run with: gdb ./program
+# debug-compile — Kompilasi dengan simbol debug & AddressSanitizer
+# Penggunaan: debug-compile program.c  →  jalankan dengan: gdb ./program
 debug-compile() {
   if [[ -z "$1" ]]; then
-    echo "⚠️  Usage: debug-compile <file.c>"
+    echo "⚠️  Penggunaan: debug-compile <file.c>"
     return 1
   fi
 
-  local src="$1"
   local out="${1%.c}"
-
-  clang -Wall -Wextra -std=c99 -g -O0 -fsanitize=address "$src" -o "$out" && \
-    echo "✅ Debug build created: $out\n💡 Run with: gdb ./$out"
+  clang -Wall -Wextra -std=c99 -g -O0 -fsanitize=address "$1" -o "$out" && \
+    echo "✅ Debug build: $out\n💡 Jalankan: gdb ./$out"
 }
 
-# gacp - Git Add, Commit, and Push in one command
-# Usage: gacp "your commit message"
-# Automatically detects internet connection and pushes only if online
+# ── Fungsi Git ────────────────────────────────────────────────────────────────
+
+# gacp — Git add, commit, dan push dalam satu perintah
+# Penggunaan: gacp "pesan commit"
 gacp() {
   if [[ -z "$1" ]]; then
-    echo "⚠️  Usage: gacp \"commit message\""
+    echo "⚠️  Penggunaan: gacp \"pesan commit\""
     return 1
   fi
 
   local branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-  if [[ -z "$branch" ]]; then
-    echo "❌ Not a Git repository!"
-    return 1
-  fi
+  [[ -z "$branch" ]] && echo "❌ Bukan repositori Git!" && return 1
 
-  echo "📦 Committing to branch: $branch"
+  echo "📦 Commit ke branch: $branch"
   git add . && git commit -m "$1" || return 1
 
-  # Check internet connectivity before pushing
   if curl -s --connect-timeout 2 https://github.com >/dev/null 2>&1; then
-    git push -u origin "$branch" && echo "🚀 Successfully pushed to $branch!"
+    git push -u origin "$branch" && echo "🚀 Berhasil push ke $branch!"
   else
-    echo "⚠️  Offline. Run 'git push' when you're back online."
+    echo "⚠️  Offline. Jalankan 'git push' saat online."
   fi
 }
 
+# gaacp — Seperti gacp tapi pesan commit dibuat otomatis oleh AI (aicommits)
+# Penggunaan: gaacp
 gaacp() {
-  # Pastikan ini repo git
   local branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-  if [[ -z "$branch" ]]; then
-    echo "❌ Not a Git repository!"
-    return 1
-  fi
+  [[ -z "$branch" ]] && echo "❌ Bukan repositori Git!" && return 1
+  [[ -z "$(git status --porcelain)" ]] && echo "⚠️  Tidak ada perubahan." && return 1
 
-  # Pastikan ada perubahan
-  if [[ -z "$(git status --porcelain)" ]]; then
-    echo "⚠️  No changes to commit."
-    return 1
-  fi
-
-  # Cek apakah aicommits tersedia
   if ! command -v aicommits >/dev/null 2>&1; then
     echo "❌ 'aicommits' belum terinstall."
-    echo "👉 Install di: https://github.com/Nutlope/aicommits"
+    echo "👉 https://github.com/Nutlope/aicommits"
     return 1
   fi
 
-  echo "📦 Generating commit message with AI..."
-  
-  # Stage semua perubahan
+  echo "📦 Membuat pesan commit dengan AI..."
   git add . || return 1
-
-  # Gunakan aicommits untuk commit
   aicommits || return 1
 
-  echo "📦 Committed to branch: $branch"
-
-  # Cek koneksi sebelum push
+  echo "📦 Commit ke branch: $branch"
   if curl -s --connect-timeout 2 https://github.com >/dev/null 2>&1; then
-    git push -u origin "$branch" && echo "🚀 Successfully pushed to $branch!"
+    git push -u origin "$branch" && echo "🚀 Berhasil push ke $branch!"
   else
-    echo "⚠️  Offline. Run 'git push' later."
+    echo "⚠️  Offline. Jalankan 'git push' nanti."
   fi
 }
 
-# init-repo - Initialize new Git repository with specific account
-# Usage: init-repo personal   # or: init-repo kampus
+# init-repo — Inisialisasi repo Git dengan akun tertentu
+# Penggunaan: init-repo personal   atau: init-repo kampus
 init-repo() {
   local account="${GIT_ACCOUNTS[$1]}"
 
   if [[ -z "$account" ]]; then
-    echo "⚠️  Usage: init-repo <personal|kampus>"
+    echo "⚠️  Penggunaan: init-repo <personal|kampus>"
     return 1
   fi
 
@@ -309,22 +256,22 @@ init-repo() {
   git init
   git config user.name "$name"
   git config user.email "$email"
-  echo "✅ Repository initialized with: $name <$email>"
+  echo "✅ Repo diinisialisasi dengan: $name <$email>"
 }
 
-# use-git - Switch Git account in existing repository
-# Usage: use-git personal   # or: use-git kampus
-# Automatically updates remote URL if needed
+# use-git — Ganti akun Git di repo yang sudah ada
+# Penggunaan: use-git personal   atau: use-git kampus
+# Otomatis memperbarui remote URL jika perlu
 use-git() {
   if [[ ! -d .git ]]; then
-    echo "⚠️  Not a Git repository!"
+    echo "⚠️  Bukan repositori Git!"
     return 1
   fi
 
   local account="${GIT_ACCOUNTS[$1]}"
 
   if [[ -z "$account" ]]; then
-    echo "⚙️  Usage: use-git <personal|kampus>"
+    echo "⚙️  Penggunaan: use-git <personal|kampus>"
     return 1
   fi
 
@@ -333,43 +280,28 @@ use-git() {
   local host="${account##*|}"
   local other_host=$([[ "$1" == "personal" ]] && echo "github.com-kampus" || echo "github.com-personal")
 
-  # Update git config
   git config user.name "$name"
   git config user.email "$email"
 
-  # Update remote URL if it uses the other account's host
   local url=$(git remote get-url origin 2>/dev/null)
   if [[ "$url" == *"$other_host"* ]]; then
     git remote set-url origin "${url/$other_host/$host}"
   fi
 
-  echo "✅ Switched to: $name ($1 account)"
+  echo "✅ Beralih ke: $name (akun $1)"
 }
 
-# zpush - Sync .zshrc to backup repository
-# Usage: zpush "updated aliases"
-# Backs up your ZSH config to ~/ZSH-Config repository
+# zpush — Sinkronisasi .zshrc ke repositori backup
+# Penggunaan: zpush "pesan"  →  atau tanpa pesan untuk pakai AI commit
 zpush() {
   local repo="$HOME/ZSH-Config"
   local source="$HOME/.zshrc"
 
-  # Validasi file sumber
-  if [[ ! -f "$source" ]]; then
-    echo "❌ File tidak ditemukan: $source"
-    return 1
-  fi
+  [[ ! -f "$source" ]]    && echo "❌ File tidak ditemukan: $source" && return 1
+  [[ ! -d "$repo/.git" ]] && echo "❌ Repo backup belum diinisialisasi: $repo" && return 1
 
-  # Validasi repo
-  if [[ ! -d "$repo/.git" ]]; then
-    echo "❌ Backup repository belum diinisialisasi: $repo"
-    echo "💡 Jalankan: mkdir -p ~/ZSH-Config && cd ~/ZSH-Config && git init"
-    return 1
-  fi
-
-  # Copy file
   cp -f "$source" "$repo/" || return 1
 
-  # Cek perubahan
   if [[ -z "$(git -C "$repo" status --porcelain)" ]]; then
     echo "⚠️  Tidak ada perubahan pada .zshrc"
     return 1
@@ -377,24 +309,17 @@ zpush() {
 
   git -C "$repo" add . || return 1
 
-  # MODE 1: pakai pesan manual
   if [[ -n "$1" ]]; then
-    echo "📦 Commit dengan pesan manual..."
     git -C "$repo" commit -m "$1" || return 1
-
-  # MODE 2: pakai AI (aicommits)
   else
     if ! command -v aicommits >/dev/null 2>&1; then
-      echo "❌ 'aicommits' belum terinstall."
-      echo "👉 Install di: https://github.com/Nutlope/aicommits"
+      echo "❌ 'aicommits' belum terinstall. 👉 https://github.com/Nutlope/aicommits"
       return 1
     fi
-
-    echo "🤖 Generating commit message with AI..."
+    echo "🤖 Membuat commit dengan AI..."
     (cd "$repo" && aicommits) || return 1
   fi
 
-  # Push kalau online
   if curl -s --connect-timeout 2 https://github.com >/dev/null 2>&1; then
     git -C "$repo" push && echo "🚀 Backup berhasil dipush!"
   else
@@ -402,14 +327,14 @@ zpush() {
   fi
 }
 
-# ── Utility Functions ─────────────────────────────────────────────────────────
+# ── Fungsi Utilitas ───────────────────────────────────────────────────────────
 
-# githack - Convert GitHub URLs to raw.githack.com CDN links
-# Usage: githack https://github.com/user/repo/blob/main/script.js
-# Automatically copies to clipboard if xclip is installed
+# githack — Konversi URL GitHub ke CDN raw.githack.com
+# Penggunaan: githack https://github.com/user/repo/blob/main/script.js
+# Otomatis copy ke clipboard jika xclip tersedia
 githack() {
   if [[ -z "$1" ]]; then
-    echo "⚠️  Usage: githack <github-url>"
+    echo "⚠️  Penggunaan: githack <github-url>"
     return 1
   fi
 
@@ -417,158 +342,133 @@ githack() {
   local out=""
 
   case "$url" in
-    # Already a githack URL
     *raw.githack.com*)
       out="$url"
       ;;
-    # raw.githubusercontent.com URL
     *raw.githubusercontent.com*)
       if [[ "$url" =~ 'raw.githubusercontent.com/([^/]+)/([^/]+)/([^/]+)/(.*)' ]]; then
         out="https://raw.githack.com/${match[1]}/${match[2]}/${match[3]}/${match[4]}"
       fi
       ;;
-    # GitHub blob URL
     *github.com*/blob/*)
       if [[ "$url" =~ 'github.com/([^/]+)/([^/]+)/blob/([^/]+)/(.*)' ]]; then
         out="https://raw.githack.com/${match[1]}/${match[2]}/${match[3]}/${match[4]}"
       fi
       ;;
     *)
-      echo "❌ Invalid GitHub URL"
+      echo "❌ URL GitHub tidak valid"
       return 1
       ;;
   esac
 
   echo "🌐 $out"
 
-  # Copy to clipboard if xclip is available
   if (( $+commands[xclip] )); then
     echo -n "$out" | xclip -selection clipboard
-    echo "📋 Copied to clipboard!"
+    echo "📋 Disalin ke clipboard!"
   fi
 }
 
-# note - Quick note-taking system
-# Usage:
-#   note                     # Open notes in editor
-#   note "your note here"    # Add timestamped note
-#   note -l                  # List all notes
-#   note -c                  # Clear all notes
+# note — Sistem catatan cepat
+# Penggunaan:
+#   note              → Buka catatan di editor
+#   note "teks"       → Tambah catatan bertimestamp
+#   note -l           → Lihat semua catatan
+#   note -c           → Hapus semua catatan
 note() {
   local file="$HOME/.notes.md"
 
   case "$1" in
-    -l|--list)
-      if [[ -f "$file" ]]; then
-        cat "$file"
-      else
-        echo "📝 No notes yet."
-      fi
-      ;;
-    -c|--clear)
-      : > "$file"
-      echo "🗑️  All notes cleared!"
-      ;;
-    "")
-      ${EDITOR:-nano} "$file"
-      ;;
-    *)
-      echo "- $(date '+%Y-%m-%d %H:%M'): $*" >> "$file"
-      echo "📝 Note saved!"
-      ;;
+    -l|--list)  [[ -f "$file" ]] && cat "$file" || echo "📝 Belum ada catatan." ;;
+    -c|--clear) : > "$file" && echo "🗑️  Semua catatan dihapus!" ;;
+    "")         ${EDITOR:-nano} "$file" ;;
+    *)          echo "- $(date '+%Y-%m-%d %H:%M'): $*" >> "$file" && echo "📝 Catatan disimpan!" ;;
   esac
 }
 
-# bench - Benchmark command execution time
-# Usage: bench npm run build
+# bench — Ukur waktu eksekusi perintah
+# Penggunaan: bench npm run build
 bench() {
   local start=$(date +%s.%N)
   "$@"
   local end=$(date +%s.%N)
-  echo "\n⏱️  Execution time: $(echo "$end - $start" | bc)s"
+  echo "\n⏱️  Waktu eksekusi: $(echo "$end - $start" | bc)s"
 }
 
-# fkill - Fuzzy search and kill process
-# Usage: fkill
-# Opens fzf to select process, then kills it
+# fkill — Cari dan kill proses dengan fuzzy finder
+# Penggunaan: fkill  →  pilih proses dari daftar fzf
 fkill() {
-  local pid=$(ps aux | fzf --header="Select process to kill" | awk '{print $2}')
+  local pid=$(ps aux | fzf --header="Pilih proses yang akan dimatikan" | awk '{print $2}')
 
   if [[ -n "$pid" ]]; then
     kill -9 "$pid"
-    echo "💀 Killed process with PID: $pid"
+    echo "💀 Proses PID $pid dimatikan"
   fi
 }
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
-# │ 📚 HELP & DOCUMENTATION                                                      │
+# │ 📚 REFERENSI PERINTAH                                                        │
 # └──────────────────────────────────────────────────────────────────────────────┘
 
-# zhelp - Display all custom commands and their usage
-# Usage: zhelp
+# zhelp — Tampilkan semua perintah custom beserta kegunaannya
 zhelp() {
   cat << 'EOF'
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║                        🚀 CUSTOM ZSH COMMANDS REFERENCE                      ║
+║                      🚀 REFERENSI PERINTAH ZSH CUSTOM                        ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
 ║                                                                              ║
-║  📁 FILE & NAVIGATION                                                        ║
-║  ───────────────────────────────────────────────────────────────────────     ║
-║  mkcd <dir>           Create directory and cd into it                        ║
-║  extract <file>       Extract any archive format automatically               ║
-║  lt / lta             Tree view (2 levels) with/without hidden files         ║
-║  dl / desk / proj     Quick jump to Downloads / Desktop / Projects           ║
-║  .. / ... / ....      Navigate up 1/2/3 directories                          ║
-║  -                    Return to previous directory                           ║
+║  📁 FILE & NAVIGASI                                                          ║
+║  ─────────────────────────────────────────────────────────────────────────   ║
+║  mkcd <dir>           Buat folder dan langsung masuk                         ║
+║  extract <file>       Ekstrak semua format arsip otomatis                    ║
+║  lt / lta             Tampilan tree 2 level / + file tersembunyi             ║
+║  .. / ... / ....      Naik 1/2/3 direktori                                   ║
+║  -                    Kembali ke direktori sebelumnya                        ║
 ║                                                                              ║
-║  💻 DEVELOPMENT                                                              ║
-║  ───────────────────────────────────────────────────────────────────────     ║
-║  compile <file.c> [args]    Compile and run C program                        ║
-║  debug-compile <file.c>     Compile with debug symbols for GDB              ║
-║  bench <command>            Measure command execution time                   ║
-║  dev / serve / build        Start dev server / Laravel serve / production    ║
+║  💻 PENGEMBANGAN                                                             ║
+║  ─────────────────────────────────────────────────────────────────────────   ║
+║  compile <file.c> [args]    Kompilasi dan jalankan program C                 ║
+║  debug-compile <file.c>     Kompilasi dengan simbol debug untuk GDB          ║
+║  bench <perintah>           Ukur waktu eksekusi perintah                     ║
 ║                                                                              ║
-║  🔧 GIT WORKFLOW                                                             ║
-║  ───────────────────────────────────────────────────────────────────────     ║
-║  gacp "message"             Git add, commit, and push (one command)          ║
-║  init-repo <personal|kampus>   Initialize repo with specific account        ║
-║  use-git <personal|kampus>     Switch Git account in current repo           ║
-║  zpush "message"            Sync .zshrc to backup repository                 ║
-║  ga / gs / gl / gd          Git shortcuts (add, status, log, diff)           ║
+║  🔧 ALUR KERJA GIT                                                           ║
+║  ─────────────────────────────────────────────────────────────────────────   ║
+║  gacp "pesan"               Add + commit + push (satu perintah)              ║
+║  gaacp                      Seperti gacp, pesan commit dibuat AI             ║
+║  init-repo <personal|kampus>   Inisialisasi repo dengan akun tertentu       ║
+║  use-git <personal|kampus>     Ganti akun Git di repo saat ini              ║
+║  zpush ["pesan"]            Sinkronisasi .zshrc ke repo backup               ║
+║  ga / gs / gl / gd          Pintasan git (add, status, log, diff)            ║
 ║                                                                              ║
-║  🛠️  UTILITIES                                                               ║
-║  ───────────────────────────────────────────────────────────────────────     ║
-║  githack <url>              Convert GitHub URL to CDN link                   ║
-║  note [text]                Quick note-taking (add/edit/list/clear)          ║
-║    note "text"              Add timestamped note                             ║
-║    note -l                  List all notes                                   ║
-║    note -c                  Clear all notes                                  ║
-║  fkill                      Fuzzy search and kill process                    ║
+║  🛠️  UTILITAS                                                                ║
+║  ─────────────────────────────────────────────────────────────────────────   ║
+║  githack <url>              Konversi URL GitHub ke CDN link                  ║
+║  note "teks"                Tambah catatan bertimestamp                      ║
+║  note -l                    Lihat semua catatan                              ║
+║  note -c                    Hapus semua catatan                              ║
+║  note                       Buka catatan di editor                           ║
+║  fkill                      Cari dan matikan proses (fuzzy)                  ║
+║  rmnoext                    Hapus file tanpa ekstensi (dengan konfirmasi)    ║
 ║                                                                              ║
-║  ℹ️  SYSTEM INFO                                                             ║
-║  ───────────────────────────────────────────────────────────────────────     ║
-║  myip                       Show public IP address                           ║
-║  weather                    Get current weather                              ║
-║  ports                      List all open ports                              ║
-║  diskspace                  Show disk usage                                  ║
-║  meminfo                    Show memory usage                                ║
+║  ℹ️  INFO SISTEM                                                             ║
+║  ─────────────────────────────────────────────────────────────────────────   ║
+║  myip                       Tampilkan IP publik                              ║
+║  weather                    Info cuaca singkat                               ║
+║  ports                      Daftar semua port terbuka                        ║
+║  diskspace                  Penggunaan disk                                  ║
+║  meminfo                    Penggunaan memori                                ║
 ║                                                                              ║
-║  ⚙️  CONFIG                                                                   ║
-║  ───────────────────────────────────────────────────────────────────────     ║
-║  zconfig                    Edit this configuration                          ║
-║  zreload                    Reload ZSH configuration                         ║
-║  zhelp                      Show this help message                           ║
-║  x / q                      Exit terminal                                    ║
+║  ⚙️  KONFIGURASI                                                              ║
+║  ─────────────────────────────────────────────────────────────────────────   ║
+║  zconfig                    Edit konfigurasi ini                             ║
+║  zreload                    Reload konfigurasi ZSH                           ║
+║  zhelp                      Tampilkan referensi ini                          ║
+║  x / q                      Keluar dari terminal                             ║
 ║                                                                              ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
-║  💡 TIP: Run 'zhelp' anytime to see this reference!                          ║
+║  💡 TIP: Ketik 'zhelp' kapanpun untuk melihat referensi ini!                 ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 EOF
 }
 
-# Show welcome message with quick tips (optional - comment out if not needed)
-# Uncomment the lines below to show tips on shell startup
-# echo "✨ Custom ZSH config loaded! Type 'zhelp' for available commands."
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

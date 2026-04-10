@@ -36,13 +36,14 @@ This configuration **extends** CachyOS's excellent base setup (`cachyos-config.z
 
 ### 🛠️ Modern CLI Tools
 - **eza** - Modern `ls` replacement with icons and git integration
-- **zoxide** - Smart directory jumper (`z` command)
+- **zoxide** - Smart directory jumper (`z` command, replaces `cd`)
 - **fnm** - Fast Node.js version manager
 - **bun** - Fast JavaScript runtime (optional)
 
 ### ⚡ Custom Features
-- **C/C++ development** helpers with Clang integration
+- **C programming** helpers with Clang integration
 - **Multi-account Git** workflow (personal + kampus/work)
+- **AI commit messages** via `aicommits` integration
 - **Smart functions** with validation and error handling
 - **Quick navigation** aliases and shortcuts
 - **Utility functions** for common tasks
@@ -61,20 +62,22 @@ This configuration **extends** CachyOS's excellent base setup (`cachyos-config.z
 
 ### Required (Modern CLI Tools)
 ```bash
-# Install with pacman
 sudo pacman -S eza zoxide fzf clang
 ```
 
 ### Optional (Development Tools)
 ```bash
-# Fast Node Manager (highly recommended for Node.js devs)
+# Fast Node Manager
 curl -fsSL https://fnm.vercel.app/install | bash
 
-# Bun runtime (optional, for JavaScript/TypeScript)
+# Bun runtime
 curl -fsSL https://bun.sh/install | bash
 
-# Additional development tools
-sudo pacman -S git base-devel gdb
+# AI commit messages (used by gaacp and zpush)
+npm install -g aicommits
+
+# Additional tools
+sudo pacman -S git base-devel gdb xclip
 ```
 
 ---
@@ -112,7 +115,6 @@ exec zsh
 ```bash
 # Test that everything works
 zhelp
-
 # If you see the help menu, you're all set! 🎉
 ```
 
@@ -124,26 +126,24 @@ zhelp
 
 #### Enhanced Directory Listing (Eza)
 ```bash
-ls          # Beautiful listing with icons
-ll          # Detailed view with file sizes and git status
-la          # Show hidden files
-lt          # Tree view (2 levels deep)
-lta         # Tree view including hidden files
+ls      # Listing with icons, directories first
+ll      # Detailed view with file sizes and git status
+la      # Show hidden files
+lt      # Tree view (2 levels deep)
+lta     # Tree view including hidden files
 ```
 
 #### Quick Navigation
 ```bash
-..          # Go up one directory
-...         # Go up two directories
-....        # Go up three directories
--           # Jump to previous directory
+..      # Go up one directory
+...     # Go up two directories
+....    # Go up three directories
+-       # Jump to previous directory
 
-dl          # Jump to Downloads folder
-desk        # Jump to Desktop
-proj        # Jump to Projects (or Kuliah if not found)
-
-mkcd myapp  # Create directory and cd into it
+mkcd myapp    # Create directory and cd into it
 ```
+
+> **Note:** `cd` is aliased to `zoxide` (`z`). Zoxide learns your habits and lets you jump to frequent directories by partial name.
 
 ### 💻 Development Workflow
 
@@ -155,23 +155,24 @@ compile calculator.c 5 10    # With arguments
 
 # Compile with debug symbols for GDB
 debug-compile program.c
-gdb ./program                # Debug with GDB
+gdb ./program
 ```
 
 **Features:**
 - ✅ Automatic Clang installation check
 - ✅ Full compiler warnings (`-Wall -Wextra`)
 - ✅ C99 standard
-- ✅ Debug symbols included
 - ✅ AddressSanitizer in debug builds
 
 #### Git Multi-Account Workflow
 
-**Setup your accounts** (edit in `.zshrc`):
+**Setup your accounts** (edit `GIT_ACCOUNTS` in `.zshrc`):
 ```bash
-# Configuration is already included:
-# - personal: Budi Imam Prasetyo <budiimamprsty@gmail.com>
-# - kampus: Budi Prasetyo <budi.prasetyo@satu.ac.id>
+typeset -A GIT_ACCOUNTS
+GIT_ACCOUNTS=(
+  [personal]="Your Name|personal@email.com|github.com-personal"
+  [kampus]="Your Name|campus@email.com|github.com-kampus"
+)
 ```
 
 **Initialize new repository:**
@@ -184,76 +185,80 @@ init-repo kampus       # For campus/work projects
 ```bash
 use-git personal       # Switch to personal account
 use-git kampus         # Switch to campus account
+# Automatically updates remote URL if needed
 ```
 
 **Quick commit & push:**
 ```bash
+# Manual commit message
 gacp "feat: add user authentication"
+# 1. git add .  2. git commit -m  3. git push (only if online)
 
-# Does three things:
-# 1. git add .
-# 2. git commit -m "message"
-# 3. git push (only if online)
+# AI-generated commit message (requires aicommits)
+gaacp
+# 1. git add .  2. aicommits  3. git push (only if online)
 ```
 
 **Backup your .zshrc:**
 ```bash
-zpush "update: added new aliases"
-
+zpush "update: added new aliases"    # Manual message
+zpush                                # AI-generated message
 # Syncs ~/.zshrc to ~/ZSH-Config repository
 ```
 
 #### Standard Git Shortcuts
 ```bash
-ga          # git add .
-gs          # git status (short format with branch)
-gl          # git log (last 15 commits, one line each)
-gd          # git diff
-```
-
-#### Framework Development
-```bash
-serve       # php artisan serve (Laravel)
-dev         # npm run dev (Vite/Webpack)
-build       # npm run build (production)
+ga      # git add .
+gs      # git status (short format with branch)
+gl      # git log (last 15 commits, one line each)
+gd      # git diff
 ```
 
 ### 🛠️ Utilities
 
+#### Remove Files Without Extension
+```bash
+rmnoext
+# Scans current directory for files without extension
+# Shows the list, asks for confirmation before deleting
+# Excludes: .git, node_modules, vendor
+```
+
 #### GitHub URL Converter
 ```bash
-# Convert GitHub blob URLs to raw.githack CDN
 githack https://github.com/user/repo/blob/main/script.js
-
-# Output:
 # 🌐 https://raw.githack.com/user/repo/main/script.js
 # 📋 Copied to clipboard! (if xclip is installed)
+
+# Also works with raw.githubusercontent.com URLs
 ```
 
 #### Quick Notes System
 ```bash
-note "Remember to update documentation"    # Add timestamped note
-note -l                                    # List all notes
-note                                       # Open notes in editor
-note -c                                    # Clear all notes
+note "Remember to update docs"    # Add timestamped note
+note -l                           # List all notes
+note                              # Open notes in editor
+note -c                           # Clear all notes
 ```
+
+Notes are stored in `~/.notes.md`.
 
 #### Process Management
 ```bash
-fkill       # Fuzzy search and kill process interactively
+fkill     # Fuzzy search and kill process interactively
 ```
 
 #### Benchmarking
 ```bash
-bench npm run build              # Measure execution time
-bench ./my-script.sh            # Works with any command
+bench npm run build        # Measure execution time
+bench ./my-script.sh
 ```
 
 ### ℹ️ System Information
 
 ```bash
 myip        # Show your public IP
-weather     # Current weather for your location
+weather     # Current weather (wttr.in)
 ports       # List all open ports
 diskspace   # Disk usage summary
 meminfo     # Memory usage
@@ -262,7 +267,7 @@ meminfo     # Memory usage
 ### ⚙️ Configuration
 
 ```bash
-zconfig     # Edit .zshrc in your editor (VS Code by default)
+zconfig     # Edit .zshrc in VS Code
 zreload     # Reload ZSH configuration
 zhelp       # Show comprehensive help menu
 x / q       # Exit terminal
@@ -279,10 +284,12 @@ x / q       # Exit terminal
 | `compile` | `compile file.c [args]` | Compile and run C program |
 | `debug-compile` | `debug-compile file.c` | Compile with debug symbols |
 | `gacp` | `gacp "message"` | Git add, commit, and push |
+| `gaacp` | `gaacp` | Same as gacp with AI commit message |
 | `init-repo` | `init-repo personal` | Initialize repo with account |
 | `use-git` | `use-git kampus` | Switch Git account |
-| `zpush` | `zpush "message"` | Backup .zshrc to repo |
+| `zpush` | `zpush ["message"]` | Backup .zshrc to repo |
 | `githack` | `githack <url>` | Convert GitHub URL to CDN |
+| `rmnoext` | `rmnoext` | Delete files without extension |
 | `note` | `note "text"` | Quick note-taking |
 | `bench` | `bench command` | Benchmark execution time |
 | `fkill` | `fkill` | Fuzzy process killer |
@@ -293,14 +300,14 @@ x / q       # Exit terminal
 
 ```
 ~/
-├── .zshrc                           # Your configuration (this file)
-├── .notes.md                        # Quick notes storage
-└── ZSH-Config/                      # Backup repository (optional)
+├── .zshrc                    # Your configuration (this file)
+├── .notes.md                 # Quick notes storage
+└── ZSH-Config/               # Backup repository (optional)
     └── .zshrc
 
 # CachyOS System Files (don't modify):
 /usr/share/cachyos-zsh-config/
-└── cachyos-config.zsh              # Base configuration
+└── cachyos-config.zsh        # Base configuration
 ```
 
 ---
@@ -308,41 +315,22 @@ x / q       # Exit terminal
 ## 🔧 Customization
 
 ### Adding Custom Aliases
-
-Edit `.zshrc` in the aliases section:
 ```bash
-# Open config
-zconfig
+zconfig     # Open .zshrc in VS Code
 
-# Add your alias in the ALIASES section:
+# Add in the ALIASES section:
 alias myalias='command here'
 
-# Reload
-zreload
+zreload     # Apply changes
 ```
 
 ### Adding Custom Functions
-
 ```bash
 # Add in the FUNCTIONS section:
 myfunction() {
-  # Your code here
   echo "Hello from my function!"
 }
 ```
-
-### Modifying Git Accounts
-
-Edit the `GIT_ACCOUNTS` associative array:
-```bash
-typeset -A GIT_ACCOUNTS
-GIT_ACCOUNTS=(
-  [personal]="Your Name|your.email@gmail.com|github.com-personal"
-  [work]="Work Name|work@company.com|github.com-work"
-)
-```
-
-**Format:** `"Name|email|ssh-host-alias"`
 
 ---
 
@@ -356,10 +344,11 @@ GIT_ACCOUNTS=(
 | `zoxide: command not found` | `sudo pacman -S zoxide` |
 | `fnm: command not found` | `curl -fsSL https://fnm.vercel.app/install \| bash` |
 | `clang: command not found` | `sudo pacman -S clang` |
+| `aicommits: command not found` | `npm install -g aicommits` |
+| `xclip: command not found` | `sudo pacman -S xclip` (optional, for clipboard) |
 
 ### Git Functions Not Working
 
-**Check your Git configuration:**
 ```bash
 # View current config
 git config --list | grep user
@@ -370,11 +359,9 @@ ls -la ~/.ssh
 
 **Set up SSH keys for multiple accounts:**
 ```bash
-# Generate keys for each account
 ssh-keygen -t ed25519 -C "personal@email.com" -f ~/.ssh/id_ed25519_personal
-ssh-keygen -t ed25519 -C "work@email.com" -f ~/.ssh/id_ed25519_work
+ssh-keygen -t ed25519 -C "campus@email.com" -f ~/.ssh/id_ed25519_kampus
 
-# Configure ~/.ssh/config
 cat >> ~/.ssh/config << 'EOF'
 Host github.com-personal
   HostName github.com
@@ -390,147 +377,119 @@ EOF
 
 ### Slow Shell Startup
 
-1. Check which tools are actually installed:
+1. Check which tools are installed:
 ```bash
-command -v fnm zoxide eza
+command -v fnm zoxide eza bun
 ```
 
-2. Comment out initializations you don't use:
+2. Comment out unused initializations in `.zshrc`:
 ```bash
-# Example: If you don't use Bun
+# Example: if you don't use Bun
 # [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 ```
 
 ### PATH Issues
 
-The configuration uses `typeset -U path` to prevent duplicates automatically. If you still see issues:
-
+The config uses `typeset -U path` to prevent duplicates automatically. If issues persist:
 ```bash
-# Check current PATH
-echo $PATH | tr ':' '\n'
-
-# Reset and reload
-unset PATH
-exec zsh
+echo $PATH | tr ':' '\n'    # Inspect current PATH
+exec zsh                    # Reset and reload
 ```
 
 ---
 
 ## 💡 Tips & Tricks
 
-### Using Zoxide Efficiently
+### Using Zoxide
 ```bash
-# After visiting directories a few times
-z docs          # Jump to ~/Documents
-z proj          # Jump to ~/Projects
-z down          # Jump to ~/Downloads
+# After visiting directories a few times:
+z docs      # Jump to ~/Documents
+z proj      # Jump to ~/Projects
 
-# Zoxide learns your habits!
+# Note: cd is aliased to z, so just use cd normally!
 ```
 
 ### FZF Power Features
 ```bash
-Ctrl+R          # Fuzzy search command history
-Ctrl+T          # Fuzzy file finder
-Alt+C           # Fuzzy directory finder
-
-# In any command, type part of the name and hit Ctrl+T:
-vim **<Ctrl+T>  # Opens fuzzy finder for files
+Ctrl+R      # Fuzzy search command history
+Ctrl+T      # Fuzzy file finder
+Alt+C       # Fuzzy directory finder
 ```
 
 ### Git Workflow Example
 ```bash
-# Start new project
-mkcd my-awesome-app
+mkcd my-app
 init-repo personal
-echo "# My Awesome App" > README.md
+echo "# My App" > README.md
 gacp "initial commit"
 
-# Later, switch to work project
-cd ~/work-project
+# Later, on a campus project:
+cd ~/campus-project
 use-git kampus
-gacp "fix: resolve authentication bug"
+gaacp     # Let AI write the commit message
 ```
 
-### Multi-Account SSH Setup
+### Multi-Account SSH Cloning
 ```bash
-# Clone with specific account
 git clone git@github.com-personal:username/repo.git
 git clone git@github.com-kampus:username/repo.git
-
-# The use-git function handles remote URL switching automatically!
+# use-git handles remote URL switching automatically
 ```
 
 ---
 
 ## 🎓 Learning Resources
 
-### ZSH
 - [ZSH Documentation](http://zsh.sourceforge.net/Doc/)
-- [CachyOS ZSH Guide](https://wiki.cachyos.org/)
-
-### Modern CLI Tools
+- [CachyOS Wiki](https://wiki.cachyos.org/)
 - [Eza GitHub](https://github.com/eza-community/eza)
 - [Zoxide GitHub](https://github.com/ajeetdsouza/zoxide)
 - [FZF Documentation](https://github.com/junegunn/fzf)
 - [FNM Documentation](https://github.com/Schniz/fnm)
-
-### Git Multi-Account Setup
+- [aicommits GitHub](https://github.com/Nutlope/aicommits)
 - [GitHub Multiple SSH Keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
-- [Git Configuration Guide](https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration)
 
 ---
 
 ## 🤝 Contributing
 
-Found a bug or have a suggestion?
-
-1. **Fork this repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Commit your changes**: `git commit -m 'feat: add amazing feature'`
-4. **Push to branch**: `git push origin feature/amazing-feature`
-5. **Open a Pull Request**
+1. Fork this repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `gacp "feat: add amazing feature"`
+4. Open a Pull Request
 
 ---
 
 ## 📋 Changelog
 
-### Version 1.0.0 (2025-01-31)
+### Version 1.1.0
+- ✅ Added `gaacp` — AI-powered commit + push
+- ✅ Added `rmnoext` — delete files without extension
+- ✅ Indonesian comments throughout `.zshrc`
+- ✅ Removed unused aliases (`dl`, `desk`, `proj`, `serve`, `dev`, `build`)
+- ✅ Compacted guard clauses in functions
+
+### Version 1.0.0
 - ✨ Initial release
 - ✅ Multi-account Git workflow
 - ✅ C programming helpers
 - ✅ Modern CLI integrations
-- ✅ Comprehensive documentation
 - ✅ Smart error handling
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **CachyOS Team** - For the excellent base ZSH configuration
-- **Oh-My-Zsh Community** - For the plugin ecosystem
-- **Eza/Zoxide/FNM Authors** - For modern CLI tools
-- All open-source contributors who make our terminals better
+- **CachyOS Team** — For the excellent base ZSH configuration
+- **Oh-My-Zsh Community** — For the plugin ecosystem
+- **Eza / Zoxide / FNM Authors** — For modern CLI tools
+- **Nutlope** — For [aicommits](https://github.com/Nutlope/aicommits)
 
 ---
 
 ## 📄 License
 
 MIT License - Feel free to use, modify, and distribute!
-
-```
-Copyright (c) 2025 Budi Imam Prasetyo
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-```
 
 ---
 
@@ -549,7 +508,7 @@ copies or substantial portions of the Software.
 
 **Made with ❤️ for the CachyOS community**
 
-[Report Bug](https://github.com/YOUR_USERNAME/ZSH-Config/issues) • [Request Feature](https://github.com/YOUR_USERNAME/ZSH-Config/issues) • [Documentation](https://github.com/YOUR_USERNAME/ZSH-Config/wiki)
+[Report Bug](https://github.com/YOUR_USERNAME/ZSH-Config/issues) • [Request Feature](https://github.com/YOUR_USERNAME/ZSH-Config/issues)
 
 </div>
 
