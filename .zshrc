@@ -110,7 +110,21 @@ alias gs='git status -sb'           # Short status with branch info
 alias gl='git log --oneline -15'    # Show last 15 commits (compact)
 alias gd='git diff'                 # Show changes
 
-alias rmnoext='find . -type f ! -name "*.*" -exec rm -i {} \;'
+rmnoext() {
+  files=$(fd --type f --no-ignore-vcs \
+    --exclude .git \
+    --exclude node_modules \
+    --exclude vendor \
+    "^[^.]+$")
+  
+  echo "$files"
+  echo
+  read "confirm?Hapus semua file di atas? (y/n): "
+  
+  if [[ $confirm == "y" ]]; then
+    echo "$files" | xargs rm
+  fi
+}
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🛠️  FUNCTIONS                                                                │
@@ -240,6 +254,45 @@ gacp() {
   fi
 }
 
+gaacp() {
+  # Pastikan ini repo git
+  local branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+  if [[ -z "$branch" ]]; then
+    echo "❌ Not a Git repository!"
+    return 1
+  fi
+
+  # Pastikan ada perubahan
+  if [[ -z "$(git status --porcelain)" ]]; then
+    echo "⚠️  No changes to commit."
+    return 1
+  fi
+
+  # Cek apakah aicommits tersedia
+  if ! command -v aicommits >/dev/null 2>&1; then
+    echo "❌ 'aicommits' belum terinstall."
+    echo "👉 Install di: https://github.com/Nutlope/aicommits"
+    return 1
+  fi
+
+  echo "📦 Generating commit message with AI..."
+  
+  # Stage semua perubahan
+  git add . || return 1
+
+  # Gunakan aicommits untuk commit
+  aicommits || return 1
+
+  echo "📦 Committed to branch: $branch"
+
+  # Cek koneksi sebelum push
+  if curl -s --connect-timeout 2 https://github.com >/dev/null 2>&1; then
+    git push -u origin "$branch" && echo "🚀 Successfully pushed to $branch!"
+  else
+    echo "⚠️  Offline. Run 'git push' later."
+  fi
+}
+
 # init-repo - Initialize new Git repository with specific account
 # Usage: init-repo personal   # or: init-repo kampus
 init-repo() {
@@ -297,24 +350,45 @@ use-git() {
 # Usage: zpush "updated aliases"
 # Backs up your ZSH config to ~/ZSH-Config repository
 zpush() {
-  if [[ -z "$1" ]]; then
-    echo "⚠️  Usage: zpush \"commit message\""
-    return 1
-  fi
-
   local repo="$HOME/ZSH-Config"
+  local source="$HOME/.zshrc"
 
-  if [[ ! -d "$repo" ]]; then
-    echo "❌ Backup repository not found: $repo"
-    echo "💡 Create it with: mkdir ~/ZSH-Config && cd ~/ZSH-Config && git init"
+  # Default commit message kalau kosong
+  local msg="$1"
+  if [[ -z "$msg" ]]; then
+    msg="update zsh config ($(date '+%Y-%m-%d %H:%M'))"
+  fi
+
+  # Validasi file
+  if [[ ! -f "$source" ]]; then
+    echo "❌ File tidak ditemukan: $source"
     return 1
   fi
 
-  cp ~/.zshrc "$repo/" && \
-  git -C "$repo" add -A && \
-  git -C "$repo" commit -m "$1" && \
-  git -C "$repo" push && \
-  echo "✅ .zshrc synced to backup repository!"
+  # Validasi repo
+  if [[ ! -d "$repo/.git" ]]; then
+    echo "❌ Repo belum diinisialisasi: $repo"
+    return 1
+  fi
+
+  cp -f "$source" "$repo/" || return 1
+
+  # Cek perubahan
+  if [[ -z "$(git -C "$repo" status --porcelain)" ]]; then
+    echo "⚠️  Tidak ada perubahan"
+    return 1
+  fi
+
+  echo "📦 Committing..."
+
+  git -C "$repo" add . || return 1
+  git -C "$repo" commit -m "$msg" || return 1
+
+  if curl -s --connect-timeout 2 https://github.com >/dev/null 2>&1; then
+    git -C "$repo" push && echo "🚀 Backup berhasil!"
+  else
+    echo "⚠️  Offline. Push nanti."
+  fi
 }
 
 # ── Utility Functions ─────────────────────────────────────────────────────────
