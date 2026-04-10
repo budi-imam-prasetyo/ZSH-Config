@@ -353,13 +353,7 @@ zpush() {
   local repo="$HOME/ZSH-Config"
   local source="$HOME/.zshrc"
 
-  # Default commit message kalau kosong
-  local msg="$1"
-  if [[ -z "$msg" ]]; then
-    msg="update zsh config ($(date '+%Y-%m-%d %H:%M'))"
-  fi
-
-  # Validasi file
+  # Validasi file sumber
   if [[ ! -f "$source" ]]; then
     echo "❌ File tidak ditemukan: $source"
     return 1
@@ -367,27 +361,44 @@ zpush() {
 
   # Validasi repo
   if [[ ! -d "$repo/.git" ]]; then
-    echo "❌ Repo belum diinisialisasi: $repo"
+    echo "❌ Backup repository belum diinisialisasi: $repo"
+    echo "💡 Jalankan: mkdir -p ~/ZSH-Config && cd ~/ZSH-Config && git init"
     return 1
   fi
 
+  # Copy file
   cp -f "$source" "$repo/" || return 1
 
   # Cek perubahan
   if [[ -z "$(git -C "$repo" status --porcelain)" ]]; then
-    echo "⚠️  Tidak ada perubahan"
+    echo "⚠️  Tidak ada perubahan pada .zshrc"
     return 1
   fi
 
-  echo "📦 Committing..."
-
   git -C "$repo" add . || return 1
-  git -C "$repo" commit -m "$msg" || return 1
 
-  if curl -s --connect-timeout 2 https://github.com >/dev/null 2>&1; then
-    git -C "$repo" push && echo "🚀 Backup berhasil!"
+  # MODE 1: pakai pesan manual
+  if [[ -n "$1" ]]; then
+    echo "📦 Commit dengan pesan manual..."
+    git -C "$repo" commit -m "$1" || return 1
+
+  # MODE 2: pakai AI (aicommits)
   else
-    echo "⚠️  Offline. Push nanti."
+    if ! command -v aicommits >/dev/null 2>&1; then
+      echo "❌ 'aicommits' belum terinstall."
+      echo "👉 Install di: https://github.com/Nutlope/aicommits"
+      return 1
+    fi
+
+    echo "🤖 Generating commit message with AI..."
+    (cd "$repo" && aicommits) || return 1
+  fi
+
+  # Push kalau online
+  if curl -s --connect-timeout 2 https://github.com >/dev/null 2>&1; then
+    git -C "$repo" push && echo "🚀 Backup berhasil dipush!"
+  else
+    echo "⚠️  Offline. Jalankan 'git push' nanti."
   fi
 }
 
