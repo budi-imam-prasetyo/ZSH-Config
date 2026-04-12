@@ -208,6 +208,16 @@ gacp() {
   local branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
   [[ -z "$branch" ]] && echo "❌ Bukan repositori Git!" && return 1
 
+  local remote_url=$(git remote get-url origin 2>/dev/null)
+
+  if [[ "$remote_url" =~ ^https:// ]]; then
+    echo "⚠️  Repo masih menggunakan HTTPS:"
+    echo "   $remote_url"
+    echo "👉 Disarankan menggunakan SSH."
+    echo ""
+    # return 1  # <- aktifkan kalau mau HARD BLOCK
+  fi
+
   echo "📦 Commit ke branch: $branch"
   git add . && git commit -m "$1" || return 1
 
@@ -229,6 +239,16 @@ gaacp() {
     echo "❌ 'aicommits' belum terinstall."
     echo "👉 https://github.com/Nutlope/aicommits"
     return 1
+  fi
+
+  local remote_url=$(git remote get-url origin 2>/dev/null)
+
+  if [[ "$remote_url" =~ ^https:// ]]; then
+    echo "⚠️  Repo masih menggunakan HTTPS:"
+    echo "   $remote_url"
+    echo "👉 Disarankan menggunakan SSH."
+    echo ""
+    # return 1  # <- aktifkan kalau mau HARD BLOCK
   fi
 
   echo "📦 Membuat pesan commit dengan AI..."
