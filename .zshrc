@@ -94,6 +94,9 @@ alias gs='git status -sb'     # Status singkat + info branch
 alias gl='git log --oneline -15'  # 15 commit terakhir (ringkas)
 alias gd='git diff'           # Tampilkan perubahan
 
+alias artisan='docker compose exec app php artisan'
+alias composer='docker compose exec app composer'
+
 # Hapus file tanpa ekstensi (dengan konfirmasi)
 rmnoext() {
   files=$(fd --type f --no-ignore-vcs \
