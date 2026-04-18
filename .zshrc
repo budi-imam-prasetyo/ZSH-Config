@@ -168,14 +168,20 @@ compile() {
   [[ "$src" != *.c ]]  && echo "Hanya file .c yang didukung" && return 1
   (( ! $+commands[clang] )) && echo "clang tidak ditemukan. Install: sudo pacman -S clang" && return 1
 
-  local out="${src%.c}"
+  # pastikan folder bin ada
+  mkdir -p bin
+
+  # ambil nama file tanpa path + ekstensi
+  local filename=$(basename "$src" .c)
+  local out="bin/$filename"
+
   shift
 
   echo "Mengompilasi: $src"
   if clang -Wall -Wextra -std=c99 -g "$src" -o "$out"; then
     echo "Output: $out"
     echo
-    "./$out" "$@"
+    "$out" "$@"
   else
     echo "Kompilasi gagal"
     return 1
