@@ -1,8 +1,3 @@
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║                     🚀 KONFIGURASI ZSH PRIBADI - CACHYOS                     ║
 # ║                  Memperluas: cachyos-config.zsh (sistem)                     ║
@@ -75,7 +70,6 @@ alias -- -='cd -'          # Kembali ke direktori sebelumnya
 
 # ── Sistem & Produktivitas ────────────────────────────────────────────────────
 alias c='clear'
-alias x='exit'
 alias q='exit'
 alias zconfig='code ~/.zshrc'                        # Edit konfigurasi ini
 alias zreload='exec zsh && echo "✅ ZSH direload!"'  # Reload konfigurasi shell
@@ -83,8 +77,6 @@ alias zreload='exec zsh && echo "✅ ZSH direload!"'  # Reload konfigurasi shell
 # Info Jaringan & Sistem
 alias ports='ss -tulanp'                       # Tampilkan semua port terbuka
 alias myip='curl -s ifconfig.me && echo'       # IP publik
-alias weather='curl -s "wttr.in/?format=3"'   # Info cuaca singkat
-alias diskspace='df -h | grep -E "^/dev"'      # Penggunaan disk
 alias meminfo='free -h'                        # Penggunaan memori
 alias cd='z'                                   # Ganti cd dengan zoxide
 
@@ -124,34 +116,6 @@ mkcd() {
   mkdir -p "$1" && cd "$1"
 }
 
-# extract — Ekstrak semua format arsip secara otomatis
-# Penggunaan: extract arsip.zip
-# Format: .tar.bz2 .tar.gz .tar.xz .tar .bz2 .gz .zip .rar .7z
-extract() {
-  if [[ -z "$1" ]]; then
-    echo "⚠️  Penggunaan: extract <file>"
-    return 1
-  fi
-
-  if [[ ! -f "$1" ]]; then
-    echo "❌ File tidak ditemukan: $1"
-    return 1
-  fi
-
-  case "$1" in
-    *.tar.bz2) tar xjf "$1" ;;
-    *.tar.gz)  tar xzf "$1" ;;
-    *.tar.xz)  tar xJf "$1" ;;
-    *.tar)     tar xf  "$1" ;;
-    *.bz2)     bunzip2 "$1" ;;
-    *.gz)      gunzip  "$1" ;;
-    *.zip)     unzip   "$1" ;;
-    *.rar)     unrar x "$1" ;;
-    *.7z)      7z x    "$1" ;;
-    *)         echo "❌ Format tidak didukung: $1" ;;
-  esac
-}
-
 # ── Fungsi C Programming ──────────────────────────────────────────────────────
 
 # compile — Kompilasi dan jalankan program C sekaligus
@@ -186,19 +150,6 @@ compile() {
     echo "Kompilasi gagal"
     return 1
   fi
-}
-
-# debug-compile — Kompilasi dengan simbol debug & AddressSanitizer
-# Penggunaan: debug-compile program.c  →  jalankan dengan: gdb ./program
-debug-compile() {
-  if [[ -z "$1" ]]; then
-    echo "⚠️  Penggunaan: debug-compile <file.c>"
-    return 1
-  fi
-
-  local out="${1%.c}"
-  clang -Wall -Wextra -std=c99 -g -O0 -fsanitize=address "$1" -o "$out" && \
-    echo "✅ Debug build: $out\n💡 Jalankan: gdb ./$out"
 }
 
 # ── Fungsi Git ────────────────────────────────────────────────────────────────
@@ -267,57 +218,6 @@ gaacp() {
   else
     echo "⚠️  Offline. Jalankan 'git push' nanti."
   fi
-}
-
-# init-repo — Inisialisasi repo Git dengan akun tertentu
-# Penggunaan: init-repo personal   atau: init-repo kampus
-init-repo() {
-  local account="${GIT_ACCOUNTS[$1]}"
-
-  if [[ -z "$account" ]]; then
-    echo "⚠️  Penggunaan: init-repo <personal|kampus>"
-    return 1
-  fi
-
-  local name="${account%%|*}"
-  local email="${${account#*|}%%|*}"
-
-  git init
-  git config user.name "$name"
-  git config user.email "$email"
-  echo "✅ Repo diinisialisasi dengan: $name <$email>"
-}
-
-# use-git — Ganti akun Git di repo yang sudah ada
-# Penggunaan: use-git personal   atau: use-git kampus
-# Otomatis memperbarui remote URL jika perlu
-use-git() {
-  if [[ ! -d .git ]]; then
-    echo "⚠️  Bukan repositori Git!"
-    return 1
-  fi
-
-  local account="${GIT_ACCOUNTS[$1]}"
-
-  if [[ -z "$account" ]]; then
-    echo "⚙️  Penggunaan: use-git <personal|kampus>"
-    return 1
-  fi
-
-  local name="${account%%|*}"
-  local email="${${account#*|}%%|*}"
-  local host="${account##*|}"
-  local other_host=$([[ "$1" == "personal" ]] && echo "github.com-kampus" || echo "github.com-personal")
-
-  git config user.name "$name"
-  git config user.email "$email"
-
-  local url=$(git remote get-url origin 2>/dev/null)
-  if [[ "$url" == *"$other_host"* ]]; then
-    git remote set-url origin "${url/$other_host/$host}"
-  fi
-
-  echo "✅ Beralih ke: $name (akun $1)"
 }
 
 # zpush — Sinkronisasi .zshrc ke repositori backup
@@ -418,21 +318,20 @@ note() {
 # bench — Ukur waktu eksekusi perintah
 # Penggunaan: bench npm run build
 bench() {
-  local start=$(date +%s.%N)
+  local start=$(date +%s%N)
   "$@"
-  local end=$(date +%s.%N)
-  echo "\n⏱️  Waktu eksekusi: $(echo "$end - $start" | bc)s"
+  local end=$(date +%s%N)
+  local diff=$(( (end - start) / 1000000 ))
+  echo "\n⏱️  Waktu eksekusi: ${diff} ms"
 }
 
-# fkill — Cari dan kill proses dengan fuzzy finder
-# Penggunaan: fkill  →  pilih proses dari daftar fzf
-fkill() {
-  local pid=$(ps aux | fzf --header="Pilih proses yang akan dimatikan" | awk '{print $2}')
-
-  if [[ -n "$pid" ]]; then
-    kill -9 "$pid"
-    echo "💀 Proses PID $pid dimatikan"
-  fi
+# Yazi
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	command yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
+	rm -f -- "$tmp"
 }
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -457,15 +356,12 @@ zhelp() {
 ║  💻 PENGEMBANGAN                                                             ║
 ║  ─────────────────────────────────────────────────────────────────────────   ║
 ║  compile <file.c> [args]    Kompilasi dan jalankan program C                 ║
-║  debug-compile <file.c>     Kompilasi dengan simbol debug untuk GDB          ║
 ║  bench <perintah>           Ukur waktu eksekusi perintah                     ║
 ║                                                                              ║
 ║  🔧 ALUR KERJA GIT                                                           ║
 ║  ─────────────────────────────────────────────────────────────────────────   ║
 ║  gacp "pesan"               Add + commit + push (satu perintah)              ║
 ║  gaacp                      Seperti gacp, pesan commit dibuat AI             ║
-║  init-repo <personal|kampus>   Inisialisasi repo dengan akun tertentu       ║
-║  use-git <personal|kampus>     Ganti akun Git di repo saat ini              ║
 ║  zpush ["pesan"]            Sinkronisasi .zshrc ke repo backup               ║
 ║  ga / gs / gl / gd          Pintasan git (add, status, log, diff)            ║
 ║                                                                              ║
@@ -476,23 +372,19 @@ zhelp() {
 ║  note -l                    Lihat semua catatan                              ║
 ║  note -c                    Hapus semua catatan                              ║
 ║  note                       Buka catatan di editor                           ║
-║  fkill                      Cari dan matikan proses (fuzzy)                  ║
 ║  rmnoext                    Hapus file tanpa ekstensi (dengan konfirmasi)    ║
 ║                                                                              ║
 ║  ℹ️  INFO SISTEM                                                             ║
 ║  ─────────────────────────────────────────────────────────────────────────   ║
 ║  myip                       Tampilkan IP publik                              ║
-║  weather                    Info cuaca singkat                               ║
 ║  ports                      Daftar semua port terbuka                        ║
-║  diskspace                  Penggunaan disk                                  ║
-║  meminfo                    Penggunaan memori                                ║
 ║                                                                              ║
-║  ⚙️  KONFIGURASI                                                              ║
+║  ⚙️  KONFIGURASI                                                             ║
 ║  ─────────────────────────────────────────────────────────────────────────   ║
 ║  zconfig                    Edit konfigurasi ini                             ║
 ║  zreload                    Reload konfigurasi ZSH                           ║
 ║  zhelp                      Tampilkan referensi ini                          ║
-║  x / q                      Keluar dari terminal                             ║
+║  q                        Keluar dari terminal                               ║
 ║                                                                              ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
 ║  💡 TIP: Ketik 'zhelp' kapanpun untuk melihat referensi ini!                 ║
@@ -500,4 +392,5 @@ zhelp() {
 EOF
 }
 
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+export EDITOR=micro
+eval "$(starship init zsh)"
