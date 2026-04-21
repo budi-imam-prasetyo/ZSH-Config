@@ -19,7 +19,6 @@ source /usr/share/cachyos-zsh-config/cachyos-config.zsh
 # └──────────────────────────────────────────────────────────────────────────────┘
 typeset -U path  # Cegah duplikasi path
 
-export JAVA_HOME=/usr/lib/jvm/default
 path=(
   $JAVA_HOME/bin
   $HOME/bin           # Skrip pribadi
@@ -63,22 +62,15 @@ alias la='eza -la --icons --git'                  # Tampilkan file tersembunyi
 alias lt='eza -T --icons --level=2'               # Tampilan tree 2 level
 alias lta='eza -Ta --icons --level=2'             # Tree + file tersembunyi
 
+alias cd='z'                                   # Ganti cd dengan zoxide
 alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
 alias -- -='cd -'          # Kembali ke direktori sebelumnya
 
 # ── Sistem & Produktivitas ────────────────────────────────────────────────────
 alias c='clear'
 alias q='exit'
 alias zconfig='code ~/.zshrc'                        # Edit konfigurasi ini
-alias zreload='exec zsh && echo "✅ ZSH direload!"'  # Reload konfigurasi shell
-
-# Info Jaringan & Sistem
-alias ports='ss -tulanp'                       # Tampilkan semua port terbuka
-alias myip='curl -s ifconfig.me && echo'       # IP publik
-alias meminfo='free -h'                        # Penggunaan memori
-alias cd='z'                                   # Ganti cd dengan zoxide
+alias zreload='exec zsh'                             # Reload konfigurasi shell
 
 # ── Pintasan Pengembangan ─────────────────────────────────────────────────────
 alias ga='git add .'          # Stage semua perubahan
@@ -216,7 +208,7 @@ gaacp() {
   if curl -s --connect-timeout 2 https://github.com >/dev/null 2>&1; then
     git push -u origin "$branch" && echo "🚀 Berhasil push ke $branch!"
   else
-    echo "⚠️  Offline. Jalankan 'git push' nanti."
+    echo "⚠️  Offline. Jalankan 'git push' saat online."
   fi
 }
 
@@ -298,23 +290,6 @@ githack() {
   fi
 }
 
-# note — Sistem catatan cepat
-# Penggunaan:
-#   note              → Buka catatan di editor
-#   note "teks"       → Tambah catatan bertimestamp
-#   note -l           → Lihat semua catatan
-#   note -c           → Hapus semua catatan
-note() {
-  local file="$HOME/.notes.md"
-
-  case "$1" in
-    -l|--list)  [[ -f "$file" ]] && cat "$file" || echo "📝 Belum ada catatan." ;;
-    -c|--clear) : > "$file" && echo "🗑️  Semua catatan dihapus!" ;;
-    "")         ${EDITOR:-nano} "$file" ;;
-    *)          echo "- $(date '+%Y-%m-%d %H:%M'): $*" >> "$file" && echo "📝 Catatan disimpan!" ;;
-  esac
-}
-
 # bench — Ukur waktu eksekusi perintah
 # Penggunaan: bench npm run build
 bench() {
@@ -350,7 +325,7 @@ zhelp() {
 ║  mkcd <dir>           Buat folder dan langsung masuk                         ║
 ║  extract <file>       Ekstrak semua format arsip otomatis                    ║
 ║  lt / lta             Tampilan tree 2 level / + file tersembunyi             ║
-║  .. / ... / ....      Naik 1/2/3 direktori                                   ║
+║  ..                   Naik 1 direktori                                       ║
 ║  -                    Kembali ke direktori sebelumnya                        ║
 ║                                                                              ║
 ║  💻 PENGEMBANGAN                                                             ║
@@ -368,16 +343,7 @@ zhelp() {
 ║  🛠️  UTILITAS                                                                ║
 ║  ─────────────────────────────────────────────────────────────────────────   ║
 ║  githack <url>              Konversi URL GitHub ke CDN link                  ║
-║  note "teks"                Tambah catatan bertimestamp                      ║
-║  note -l                    Lihat semua catatan                              ║
-║  note -c                    Hapus semua catatan                              ║
-║  note                       Buka catatan di editor                           ║
 ║  rmnoext                    Hapus file tanpa ekstensi (dengan konfirmasi)    ║
-║                                                                              ║
-║  ℹ️  INFO SISTEM                                                             ║
-║  ─────────────────────────────────────────────────────────────────────────   ║
-║  myip                       Tampilkan IP publik                              ║
-║  ports                      Daftar semua port terbuka                        ║
 ║                                                                              ║
 ║  ⚙️  KONFIGURASI                                                             ║
 ║  ─────────────────────────────────────────────────────────────────────────   ║
