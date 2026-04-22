@@ -69,7 +69,7 @@ alias -- -='cd -'          # Kembali ke direktori sebelumnya
 # ── Sistem & Produktivitas ────────────────────────────────────────────────────
 alias c='clear'
 alias q='exit'
-alias zconfig='code ~/.zshrc'                        # Edit konfigurasi ini
+alias zconfig='code ~/config/'                        # Edit konfigurasi ini
 alias zreload='exec zsh'                             # Reload konfigurasi shell
 
 # ── Pintasan Pengembangan ─────────────────────────────────────────────────────
