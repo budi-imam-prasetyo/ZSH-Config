@@ -41,13 +41,19 @@ export PATH
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ ⚙️  OPSI ZSH                                                                 │
 # └──────────────────────────────────────────────────────────────────────────────┘
-HIST_STAMPS="yyyy-mm-dd"
+HIST_STAMPS="yyyy-mm-dd"    # Format tanggal di history (misal: 2025-04-23 ls)
+HISTSIZE=10000               # Jumlah perintah yang disimpan di memori per sesi
+SAVEHIST=10000               # Jumlah perintah yang ditulis ke ~/.zsh_history
 
-setopt AUTO_CD              # Ketik nama folder langsung masuk (tanpa 'cd')
-setopt AUTO_PUSHD           # cd otomatis push direktori lama ke stack
-setopt PUSHD_IGNORE_DUPS    # Jangan push direktori duplikat
-setopt CORRECT              # Sarankan koreksi typo perintah
-setopt INTERACTIVE_COMMENTS # Izinkan komentar (#) di shell interaktif
+setopt SHARE_HISTORY         # Sync history realtime antar semua terminal yang terbuka
+setopt HIST_IGNORE_ALL_DUPS  # Hapus entri lama jika perintah sama diketik lagi
+setopt HIST_FIND_NO_DUPS     # Saat Ctrl+R, skip hasil duplikat
+
+setopt AUTO_CD               # Ketik nama folder langsung masuk (tanpa 'cd')
+setopt AUTO_PUSHD            # cd otomatis push direktori lama ke stack
+setopt PUSHD_IGNORE_DUPS     # Jangan push direktori duplikat ke stack
+setopt CORRECT               # Sarankan koreksi typo perintah
+setopt INTERACTIVE_COMMENTS  # Izinkan komentar (#) di shell interaktif
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🎨 ALIAS                                                                     │
@@ -81,6 +87,14 @@ alias gd='git diff'           # Tampilkan perubahan
 alias artisan='docker compose exec app php artisan'
 alias composer='docker compose exec app composer'
 
+if (( $+commands[zoxide] )); then
+  alias cd='z'
+fi
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ 🛠️  FUNGSI                                                                   │
+# └──────────────────────────────────────────────────────────────────────────────┘
+
 # Hapus file tanpa ekstensi (dengan konfirmasi)
 rmnoext() {
   files=$(fd --type f --no-ignore-vcs \
@@ -97,10 +111,6 @@ rmnoext() {
     echo "$files" | xargs rm
   fi
 }
-
-# ┌──────────────────────────────────────────────────────────────────────────────┐
-# │ 🛠️  FUNGSI                                                                   │
-# └──────────────────────────────────────────────────────────────────────────────┘
 
 # mkcd — Buat folder dan langsung masuk ke dalamnya
 # Penggunaan: mkcd nama-folder
@@ -291,7 +301,6 @@ githack() {
 }
 
 # bench — Ukur waktu eksekusi perintah
-# Penggunaan: bench npm run build
 bench() {
   local start=$(date +%s%N)
   "$@"
