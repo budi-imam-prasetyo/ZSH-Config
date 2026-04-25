@@ -30,6 +30,7 @@ path=(
   $path
 )
 export PATH
+export "MICRO_TRUECOLOR=1"
 
 # ── Inisialisasi Tool ─────────────────────────────────────────────────────────
 # Hanya diload jika tersedia (mempercepat startup)
@@ -41,6 +42,16 @@ export PATH
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ ⚙️  OPSI ZSH                                                                 │
 # └──────────────────────────────────────────────────────────────────────────────┘
+
+# Open in a popup if on tmux or Zellij, otherwise use --height mode
+export FZF_DEFAULT_OPTS="--height 70% \
+--layout=reverse \
+--border=top \
+--style=full \
+--preview '~/.local/bin/fzf-preview.sh {}' \
+--bind 'focus:transform-header:file --brief {}'"
+BAT_THEME="Catppuccin Mocha"
+
 HIST_STAMPS="yyyy-mm-dd"    # Format tanggal di history (misal: 2025-04-23 ls)
 HISTSIZE=10000               # Jumlah perintah yang disimpan di memori per sesi
 SAVEHIST=10000               # Jumlah perintah yang ditulis ke ~/.zsh_history
