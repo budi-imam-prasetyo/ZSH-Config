@@ -1,6 +1,5 @@
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║                     🚀 KONFIGURASI ZSH PRIBADI - CACHYOS                     ║
-# ║                  Memperluas: cachyos-config.zsh (sistem)                     ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -22,8 +21,7 @@ typeset -U path  # Cegah duplikasi path
 path=(
   $JAVA_HOME/bin
   $HOME/bin           # Skrip pribadi
-  $HOME/.local/bin    # Binary user-install
-  $HOME/.fnm          # Fast Node Manager
+  $HOME/.local/bin    # Binary user-install\
   $HOME/.local/share/fnm
   $HOME/.cargo/bin    # Binary Rust
   $HOME/.bun/bin      # Runtime Bun
@@ -56,6 +54,9 @@ HIST_STAMPS="yyyy-mm-dd"    # Format tanggal di history (misal: 2025-04-23 ls)
 HISTSIZE=10000               # Jumlah perintah yang disimpan di memori per sesi
 SAVEHIST=10000               # Jumlah perintah yang ditulis ke ~/.zsh_history
 
+setopt NO_CLOBBER
+setopt EXTENDED_GLOB
+setopt PIPE_FAIL
 setopt SHARE_HISTORY         # Sync history realtime antar semua terminal yang terbuka
 setopt HIST_IGNORE_ALL_DUPS  # Hapus entri lama jika perintah sama diketik lagi
 setopt HIST_FIND_NO_DUPS     # Saat Ctrl+R, skip hasil duplikat
@@ -73,13 +74,15 @@ setopt INTERACTIVE_COMMENTS  # Izinkan komentar (#) di shell interaktif
 # ── Listing & Navigasi ────────────────────────────────────────────────────────
 # Menggunakan 'eza' — pengganti modern untuk 'ls'
 
-alias ls='eza --icons --group-directories-first'  # Listing dasar
-alias ll='eza -lh --icons --git'                  # Format panjang + status git
-alias la='eza -la --icons --git'                  # Tampilkan file tersembunyi
-alias lt='eza -T --icons --level=2'               # Tampilan tree 2 level
-alias lta='eza -Ta --icons --level=2'             # Tree + file tersembunyi
+alias ls='eza --icons --group-directories-first --color=auto'  # Listing dasar
+alias ll='eza -lh --icons --git'                               # Format panjang + status git
+alias la='eza -la --icons --git'                               # Tampilkan file tersembunyi
+alias lt='eza -T --icons --level=2'                            # Tampilan tree 2 level
+alias lta='eza -Ta --icons --level=2'                          # Tree + file tersembunyi
 
-alias cd='z'                                   # Ganti cd dengan zoxide
+if (( $+commands[zoxide] )); then
+  alias cd='z'
+fi
 alias ..='cd ..'
 alias -- -='cd -'          # Kembali ke direktori sebelumnya
 
@@ -98,35 +101,26 @@ alias gd='git diff'           # Tampilkan perubahan
 alias artisan='docker compose exec app php artisan'
 alias composer='docker compose exec app composer'
 
-if (( $+commands[zoxide] )); then
-  alias cd='z'
-fi
-
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🛠️  FUNGSI                                                                   │
 # └──────────────────────────────────────────────────────────────────────────────┘
 
 # Hapus file tanpa ekstensi (dengan konfirmasi)
 rmnoext() {
-  files=$(fd --type f --no-ignore-vcs \
+  fd --type f --no-ignore-vcs \
     --exclude .git \
     --exclude node_modules \
     --exclude vendor \
-    "^[^.]+$")
-  
-  echo "$files"
-  echo
-  read "confirm?Hapus semua file di atas? (y/n): "
-  
-  if [[ $confirm == "y" ]]; then
-    echo "$files" | xargs rm
-  fi
+    "^[^.]+$" -0 |
+  tee /dev/stderr |
+  xargs -0 -r -p rm --
 }
 
 # mkcd — Buat folder dan langsung masuk ke dalamnya
 # Penggunaan: mkcd nama-folder
 mkcd() {
-  mkdir -p "$1" && cd "$1"
+  [[ -z "$1" ]] && return 1
+  mkdir -p -- "$1" && cd -- "$1"
 }
 
 # ── Fungsi C Programming ──────────────────────────────────────────────────────
@@ -134,33 +128,23 @@ mkcd() {
 # compile — Kompilasi dan jalankan program C sekaligus
 # Penggunaan: compile program.c [argumen...]
 compile() {
-  if [[ -z "$1" ]]; then
-    echo "Penggunaan: compile <file.c> [argumen...]"
-    return 1
-  fi
+  [[ -z "$1" ]] && echo "Usage: compile <file.c>" && return 1
+  (( ! $+commands[clang] )) && echo "clang not installed" && return 1
 
   local src="$1"
-
-  [[ ! -f "$src" ]]    && echo "File tidak ditemukan: $src" && return 1
-  [[ "$src" != *.c ]]  && echo "Hanya file .c yang didukung" && return 1
-  (( ! $+commands[clang] )) && echo "clang tidak ditemukan. Install: sudo pacman -S clang" && return 1
-
-  # pastikan folder bin ada
-  mkdir -p bin
-
-  # ambil nama file tanpa path + ekstensi
-  local filename=$(basename "$src" .c)
-  local out="bin/$filename"
-
   shift
 
-  echo "Mengompilasi: $src"
-  if clang -Wall -Wextra -std=c99 -g "$src" -o "$out"; then
-    echo "Output: $out"
-    echo
+  [[ ! -f "$src" ]] && echo "File not found: $src" && return 1
+
+  mkdir -p bin
+  local out="bin/${src:t:r}"
+
+  echo "⚙️ compiling..."
+  if clang -O2 -Wall -Wextra -std=c23 "$src" -o "$out"; then
+    echo "▶ running..."
     "$out" "$@"
   else
-    echo "Kompilasi gagal"
+    echo "❌ compile failed"
     return 1
   fi
 }
@@ -191,7 +175,7 @@ gacp() {
   echo "📦 Commit ke branch: $branch"
   git add . && git commit -m "$1" || return 1
 
-  if curl -s --connect-timeout 2 https://github.com >/dev/null 2>&1; then
+  if git ls-remote origin &>/dev/null; then
     git push -u origin "$branch" && echo "🚀 Berhasil push ke $branch!"
   else
     echo "⚠️  Offline. Jalankan 'git push' saat online."
@@ -226,7 +210,7 @@ gaacp() {
   aicommits || return 1
 
   echo "📦 Commit ke branch: $branch"
-  if curl -s --connect-timeout 2 https://github.com >/dev/null 2>&1; then
+  if git ls-remote origin &>/dev/null; then
     git push -u origin "$branch" && echo "🚀 Berhasil push ke $branch!"
   else
     echo "⚠️  Offline. Jalankan 'git push' saat online."
@@ -262,7 +246,7 @@ zpush() {
     (cd "$repo" && aicommits) || return 1
   fi
 
-  if curl -s --connect-timeout 2 https://github.com >/dev/null 2>&1; then
+  if git ls-remote origin &>/dev/null; then
     git -C "$repo" push && echo "🚀 Backup berhasil dipush!"
   else
     echo "⚠️  Offline. Jalankan 'git push' nanti."
@@ -313,11 +297,7 @@ githack() {
 
 # bench — Ukur waktu eksekusi perintah
 bench() {
-  local start=$(date +%s%N)
-  "$@"
-  local end=$(date +%s%N)
-  local diff=$(( (end - start) / 1000000 ))
-  echo "\n⏱️  Waktu eksekusi: ${diff} ms"
+  command time -f "\n⏱ real %E\n🧠 user %U\n⚙ sys %S" "$@"
 }
 
 # Yazi
@@ -329,6 +309,9 @@ function y() {
 	rm -f -- "$tmp"
 }
 
+chpwd() {
+  eza --icons --group-directories-first
+}
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 📚 REFERENSI PERINTAH                                                        │
 # └──────────────────────────────────────────────────────────────────────────────┘
