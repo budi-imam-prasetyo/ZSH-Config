@@ -5,51 +5,104 @@
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🔌 PLUGIN & KONFIGURASI DASAR                                                │
 # └──────────────────────────────────────────────────────────────────────────────┘
+
 plugins=(
   git      # Pintasan git & status di prompt
-  fzf      # Fuzzy finder (Ctrl+R: riwayat, Ctrl+T: file)
+  fzf      # Fuzzy finder
   extract  # Ekstrak arsip dengan perintah 'x'
 )
 
-# Load konfigurasi bawaan CachyOS (tema, completion, plugin tambahan)
+# Load konfigurasi bawaan CachyOS
 source /usr/share/cachyos-zsh-config/cachyos-config.zsh
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ ⚠️  FIX HISTORY, AUTOSUGGEST & COMPLETION                                    │
+# └──────────────────────────────────────────────────────────────────────────────┘
+
+# PROMPT_COMMAND milik bash, bukan zsh
+unset PROMPT_COMMAND
+
+# History
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=10000
+SAVEHIST=10000
+
+# Sync history realtime antar terminal
+setopt APPEND_HISTORY
+setopt INC_APPEND_HISTORY
+setopt INC_APPEND_HISTORY_TIME
+setopt SHARE_HISTORY
+
+# Hindari duplicate history
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_FIND_NO_DUPS
+
+# Completion system
+autoload -Uz compinit
+compinit
+
+zmodload zsh/complist
+
+# Completion behavior
+setopt AUTO_MENU
+setopt MENU_COMPLETE
+
+# Interactive completion menu
+zstyle ':completion:*' menu select
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' verbose yes
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+
+# Autosuggestion
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+ZSH_AUTOSUGGEST_USE_ASYNC=1
+ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=50
+
+# Keybindings
+bindkey '^[[A' up-line-or-history
+bindkey '^[[B' down-line-or-history
+bindkey '^[[C' forward-char
+bindkey '^[[D' backward-char
+
+# Accept autosuggestion
+bindkey '^ ' autosuggest-accept
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🌍 ENVIRONMENT & PATH                                                        │
 # └──────────────────────────────────────────────────────────────────────────────┘
+
 typeset -U path  # Cegah duplikasi path
 
 path=(
-  $JAVA_HOME/bin           # Binary Java (JDK)
-  $HOME/bin                # Skrip pribadi
-  $HOME/.local/bin         # Binary user-install
-  $HOME/.local/share/fnm   # fnm (Fast Node Manager) shims
-  $HOME/.cargo/bin         # Binary Rust (via Cargo)
-  $HOME/.bun/bin           # Runtime Bun
+  $JAVA_HOME/bin
+  $HOME/bin
+  $HOME/.local/bin
+  $HOME/.local/share/fnm
+  $HOME/.cargo/bin
+  $HOME/.bun/bin
   $path
 )
+
 export PATH
-export "MICRO_TRUECOLOR=1"  # Aktifkan dukungan warna 24-bit di editor Micro
+export MICRO_TRUECOLOR=1
+export BAT_THEME="Catppuccin Mocha"
 
 # ── Inisialisasi Tool ─────────────────────────────────────────────────────────
-# Hanya diload jika tersedia (mempercepat startup)
 
-# fnm: Node.js version manager — otomatis ganti versi Node saat masuk folder
-(( $+commands[fnm] ))    && eval "$(fnm env --use-on-cd --shell zsh)"
+# fnm
+(( $+commands[fnm] )) && eval "$(fnm env --use-on-cd --shell zsh)"
 
-# zoxide: pengganti 'cd' yang belajar dari direktori yang sering dikunjungi
-(( $+commands[zoxide] )) && eval "$(zoxide init zsh)"
+# zoxide (replace cd tanpa merusak completion)
+(( $+commands[zoxide] )) && eval "$(zoxide init zsh --cmd cd)"
 
-# Bun shell completions — aktifkan tab completion untuk subcommand bun
+# Bun completion
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
-# │ ⚙️  OPSI ZSH                                                                 │
+# │ 🔎 FZF                                                                       │
 # └──────────────────────────────────────────────────────────────────────────────┘
 
-# Tampilkan preview isi file/folder saat navigasi fzf
-# --style=full: aktifkan border + header + preview sekaligus
-# focus:transform-header: update header dengan info file saat kursor berpindah
 export FZF_DEFAULT_OPTS="--height 70% \
 --layout=reverse \
 --border=top \
@@ -57,68 +110,110 @@ export FZF_DEFAULT_OPTS="--height 70% \
 --preview '~/.local/bin/fzf-preview.sh {}' \
 --bind 'focus:transform-header:file --brief {}'"
 
-BAT_THEME="Catppuccin Mocha"  # Tema syntax highlighting untuk bat (pengganti cat)
+export FZF_BASE=/usr/share/fzf
 
-HIST_STAMPS="yyyy-mm-dd"    # Format tanggal di history (misal: 2025-04-23 ls)
-HISTSIZE=10000               # Jumlah perintah yang disimpan di memori per sesi
-SAVEHIST=10000               # Jumlah perintah yang ditulis ke ~/.zsh_history
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ ⚙️  OPSI ZSH                                                                 │
+# └──────────────────────────────────────────────────────────────────────────────┘
 
-setopt NO_CLOBBER            # Cegah penimpaan file secara tidak sengaja dengan '>'
-setopt EXTENDED_GLOB         # Aktifkan glob pattern lebih canggih (misal: ^*.txt, **/)
-setopt PIPE_FAIL             # Exit code pipeline = exit code perintah pertama yang gagal
-setopt SHARE_HISTORY         # Sync history realtime antar semua terminal yang terbuka
-setopt HIST_IGNORE_ALL_DUPS  # Hapus entri lama jika perintah sama diketik lagi
-setopt HIST_FIND_NO_DUPS     # Saat Ctrl+R, skip hasil duplikat
+HIST_STAMPS="yyyy-mm-dd"
 
-setopt AUTO_CD               # Ketik nama folder langsung masuk (tanpa 'cd')
-setopt AUTO_PUSHD            # cd otomatis push direktori lama ke stack
-setopt PUSHD_IGNORE_DUPS     # Jangan push direktori duplikat ke stack
-setopt CORRECT               # Sarankan koreksi typo perintah
-setopt INTERACTIVE_COMMENTS  # Izinkan komentar (#) di shell interaktif
+setopt AUTO_CD
+setopt AUTO_PUSHD
+setopt PUSHD_IGNORE_DUPS
+setopt CORRECT
+setopt INTERACTIVE_COMMENTS
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🎨 ALIAS                                                                     │
 # └──────────────────────────────────────────────────────────────────────────────┘
 
 # ── Listing & Navigasi ────────────────────────────────────────────────────────
-# Menggunakan 'eza' — pengganti modern untuk 'ls'
 
-alias ls='eza --icons --group-directories-first --color=auto'  # Listing dasar
-alias ll='eza -lh --icons --git'                               # Format panjang + status git
-alias la='eza -la --icons --git'                               # Tampilkan file tersembunyi
-alias lt='eza -T --icons --level=2'                            # Tampilan tree 2 level
-alias lta='eza -Ta --icons --level=2'                          # Tree + file tersembunyi
+EZA_IGNORE="node_modules|vendor|dist|build|coverage|.git|.next|.nuxt|target"
 
-# Ganti 'cd' dengan 'z' dari zoxide jika tersedia
-if (( $+commands[zoxide] )); then
-  alias cd='z'
-fi
+alias ls="eza --icons --group-directories-first --color=auto --ignore-glob=$EZA_IGNORE"
+alias ll="eza -lh --icons --git --ignore-glob=$EZA_IGNORE"
+alias la="eza -la --icons --git --ignore-glob=$EZA_IGNORE"
+alias lt="eza -T --icons --level=2 --ignore-glob=$EZA_IGNORE"
+alias lta="eza -Ta --icons --level=2 --ignore-glob=$EZA_IGNORE"
+
 alias ..='cd ..'
-alias -- -='cd -'          # Kembali ke direktori sebelumnya
+alias -- -='cd -'
 
 # ── Sistem & Produktivitas ────────────────────────────────────────────────────
+
 alias c='clear'
 alias q='exit'
-alias zconfig='code ~/config/'                        # Edit konfigurasi ini
-alias zreload='exec zsh'                              # Reload konfigurasi shell
+
+alias zconfig='code ~/.zshrc'
+alias zreload='exec zsh'
 
 # ── Pintasan Pengembangan ─────────────────────────────────────────────────────
-alias ga='git add .'              # Stage semua perubahan
-alias gs='git status -sb'         # Status singkat + info branch
-alias gl='git log --oneline -15'  # 15 commit terakhir (ringkas)
-alias gd='git diff'               # Tampilkan perubahan yang belum di-stage
 
-# Jalankan perintah artisan & composer di dalam container Docker
+alias ga='git add .'
+alias gs='git status -sb'
+alias gl='git log --oneline -15'
+alias gd='git diff'
+
+# Docker Laravel
 alias artisan='docker compose exec app php artisan'
 alias composer='docker compose exec app composer'
 
+# ── Build ─────────────────────────────────────────────────────────────────────
+
+alias make="make -j$(nproc)"
+alias ninja="ninja -j$(nproc)"
+alias n="ninja"
+
+# ── Pacman ────────────────────────────────────────────────────────────────────
+
+alias rmpkg="sudo pacman -Rsn"
+alias cleanch="sudo pacman -Scc"
+alias fixpacman="sudo rm /var/lib/pacman/db.lck"
+alias update="sudo pacman -Syu"
+
+# Cleanup orphaned packages
+alias cleanup="sudo pacman -Rsn \$(pacman -Qtdq)"
+
+# ── Arch Helper ───────────────────────────────────────────────────────────────
+
+alias wl="wl-copy <"
+
+# ── Arch Helper ───────────────────────────────────────────────────────────────
+
+alias apt="man pacman"
+alias apt-get="man pacman"
+alias please="sudo"
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+
+alias jctl="journalctl -p 3 -xb"
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+
+alias tb="nc termbin.com 9999"
+
 # ┌──────────────────────────────────────────────────────────────────────────────┐
-# │ 🛠️  FUNGSI                                                                   │
+# │ 🔌 PLUGINS                                                                   │
 # └──────────────────────────────────────────────────────────────────────────────┘
 
-# rmnoext — Hapus semua file tanpa ekstensi di direktori saat ini (rekursif)
-# Menggunakan 'fd' untuk pencarian dan 'xargs -p' agar ada konfirmasi sebelum hapus
-# Penggunaan: rmnoext
+# pkgfile "command not found"
+source /usr/share/doc/pkgfile/command-not-found.zsh
+
+# fzf keybind
+source /usr/share/fzf/key-bindings.zsh
+
+# Plugin order penting
+source /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ 🛠️  FUNCTIONS                                                                │
+# └──────────────────────────────────────────────────────────────────────────────┘
+
+# rmnoext — Hapus file tanpa ekstensi
 rmnoext() {
   fd --type f --no-ignore-vcs \
     --exclude .git \
@@ -129,19 +224,13 @@ rmnoext() {
   xargs -0 -r -p rm --
 }
 
-# mkcd — Buat folder dan langsung masuk ke dalamnya
-# Penggunaan: mkcd nama-folder
+# mkcd — Buat folder dan langsung masuk
 mkcd() {
   [[ -z "$1" ]] && return 1
   mkdir -p -- "$1" && cd -- "$1"
 }
 
-# ── Fungsi C Programming ──────────────────────────────────────────────────────
-
-# compile — Kompilasi dan jalankan program C sekaligus menggunakan clang
-# Flag: -O2 (optimasi), -Wall -Wextra (semua warning), -std=c23 (standar C terbaru)
-# Output binary disimpan di folder ./bin/ dengan nama sama seperti file sumber
-# Penggunaan: compile program.c [argumen...]
+# compile — Compile & run C
 compile() {
   [[ -z "$1" ]] && echo "Usage: compile <file.c>" && return 1
   (( ! $+commands[clang] )) && echo "clang not installed" && return 1
@@ -152,9 +241,10 @@ compile() {
   [[ ! -f "$src" ]] && echo "File not found: $src" && return 1
 
   mkdir -p bin
-  local out="bin/${src:t:r}"  # Ambil nama file tanpa ekstensi, taruh di bin/
+  local out="bin/${src:t:r}"
 
   echo "⚙️ compiling..."
+
   if clang -O2 -Wall -Wextra -std=c23 "$src" -o "$out"; then
     echo "▶ running..."
     "$out" "$@"
@@ -164,11 +254,7 @@ compile() {
   fi
 }
 
-# ── Fungsi Git ────────────────────────────────────────────────────────────────
-
-# gacp — Git add, commit, dan push dalam satu perintah
-# Otomatis deteksi branch aktif dan peringatkan jika remote masih pakai HTTPS
-# Penggunaan: gacp "pesan commit"
+# gacp — Add + Commit + Push
 gacp() {
   if [[ -z "$1" ]]; then
     echo "⚠️  Penggunaan: gacp \"pesan commit\""
@@ -176,6 +262,7 @@ gacp() {
   fi
 
   local branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
   [[ -z "$branch" ]] && echo "❌ Bukan repositori Git!" && return 1
 
   local remote_url=$(git remote get-url origin 2>/dev/null)
@@ -185,13 +272,12 @@ gacp() {
     echo "   $remote_url"
     echo "👉 Disarankan menggunakan SSH."
     echo ""
-    # return 1  # <- aktifkan kalau mau HARD BLOCK
   fi
 
   echo "📦 Commit ke branch: $branch"
+
   git add . && git commit -m "$1" || return 1
 
-  # Cek koneksi ke remote sebelum push (hindari error saat offline)
   if git ls-remote origin &>/dev/null; then
     git push -u origin "$branch" && echo "🚀 Berhasil push ke $branch!"
   else
@@ -199,11 +285,10 @@ gacp() {
   fi
 }
 
-# gaacp — Seperti gacp tapi pesan commit dibuat otomatis oleh AI (aicommits)
-# Requires: aicommits → https://github.com/Nutlope/aicommits
-# Penggunaan: gaacp
+# gaacp — AI commit
 gaacp() {
   local branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
   [[ -z "$branch" ]] && echo "❌ Bukan repositori Git!" && return 1
   [[ -z "$(git status --porcelain)" ]] && echo "⚠️  Tidak ada perubahan." && return 1
 
@@ -213,21 +298,11 @@ gaacp() {
     return 1
   fi
 
-  local remote_url=$(git remote get-url origin 2>/dev/null)
-
-  if [[ "$remote_url" =~ ^https:// ]]; then
-    echo "⚠️  Repo masih menggunakan HTTPS:"
-    echo "   $remote_url"
-    echo "👉 Disarankan menggunakan SSH."
-    echo ""
-    # return 1  # <- aktifkan kalau mau HARD BLOCK
-  fi
-
   echo "📦 Membuat pesan commit dengan AI..."
-  git add . || return 1
-  aicommits || return 1  # aicommits membaca diff dan membuat commit message
 
-  echo "📦 Commit ke branch: $branch"
+  git add . || return 1
+  aicommits || return 1
+
   if git ls-remote origin &>/dev/null; then
     git push -u origin "$branch" && echo "🚀 Berhasil push ke $branch!"
   else
@@ -235,18 +310,15 @@ gaacp() {
   fi
 }
 
-# zpush — Sinkronisasi .zshrc ke repositori backup di ~/ZSH-Config
-# Salin .zshrc terbaru → commit → push ke remote
-# Jika pesan tidak diberikan, gunakan aicommits untuk generate otomatis
-# Penggunaan: zpush "pesan"  →  atau tanpa pesan untuk pakai AI commit
+# zpush — Backup .zshrc
 zpush() {
   local repo="$HOME/ZSH-Config"
   local source="$HOME/.zshrc"
 
-  [[ ! -f "$source" ]]    && echo "❌ File tidak ditemukan: $source" && return 1
+  [[ ! -f "$source" ]] && echo "❌ File tidak ditemukan: $source" && return 1
   [[ ! -d "$repo/.git" ]] && echo "❌ Repo backup belum diinisialisasi: $repo" && return 1
 
-  cp -f "$source" "$repo/" || return 1  # Salin .zshrc terbaru ke folder repo
+  cp -f "$source" "$repo/" || return 1
 
   if [[ -z "$(git -C "$repo" status --porcelain)" ]]; then
     echo "⚠️  Tidak ada perubahan pada .zshrc"
@@ -259,9 +331,10 @@ zpush() {
     git -C "$repo" commit -m "$1" || return 1
   else
     if ! command -v aicommits >/dev/null 2>&1; then
-      echo "❌ 'aicommits' belum terinstall. 👉 https://github.com/Nutlope/aicommits"
+      echo "❌ 'aicommits' belum terinstall."
       return 1
     fi
+
     echo "🤖 Membuat commit dengan AI..."
     (cd "$repo" && aicommits) || return 1
   fi
@@ -273,13 +346,7 @@ zpush() {
   fi
 }
 
-# ── Fungsi Utilitas ───────────────────────────────────────────────────────────
-
-# githack — Konversi URL GitHub ke CDN raw.githack.com
-# Berguna untuk load file JS/CSS dari GitHub di browser tanpa CORS issue
-# Mendukung 3 format input: githack URL, raw.githubusercontent.com, dan github.com/blob
-# Otomatis copy ke clipboard jika xclip tersedia
-# Penggunaan: githack https://github.com/user/repo/blob/main/script.js
+# githack — Convert GitHub URL
 githack() {
   if [[ -z "$1" ]]; then
     echo "⚠️  Penggunaan: githack <github-url>"
@@ -291,7 +358,7 @@ githack() {
 
   case "$url" in
     *raw.githack.com*)
-      out="$url"  # URL sudah dalam format githack, tidak perlu dikonversi
+      out="$url"
       ;;
     *raw.githubusercontent.com*)
       if [[ "$url" =~ 'raw.githubusercontent.com/([^/]+)/([^/]+)/([^/]+)/(.*)' ]]; then
@@ -317,80 +384,50 @@ githack() {
   fi
 }
 
-# bench — Ukur waktu eksekusi perintah menggunakan GNU time
-# Output: real time (wall clock), user time (CPU userspace), sys time (CPU kernel)
-# Penggunaan: bench <perintah> [argumen...]
+# bench — Benchmark command
 bench() {
   command time -f "\n⏱ real %E\n🧠 user %U\n⚙ sys %S" "$@"
 }
 
-# y — Wrapper untuk Yazi file manager
-# Saat keluar dari Yazi, shell akan berpindah ke direktori terakhir yang dibuka
-# Tanpa wrapper ini, direktori tidak ikut berubah setelah Yazi ditutup
-# Penggunaan: y [path]
+# y — Yazi wrapper
 function y() {
 	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+
 	command yazi "$@" --cwd-file="$tmp"
+
 	IFS= read -r -d '' cwd < "$tmp"
+
 	[ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
+
 	rm -f -- "$tmp"
 }
 
-# chpwd — Hook otomatis ZSH yang dipanggil setiap kali direktori berubah
-# Menampilkan isi folder baru langsung tanpa perlu ketik 'ls' manual
+# Auto ls saat pindah folder
 chpwd() {
   eza --icons --group-directories-first
 }
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
-# │ 📚 REFERENSI PERINTAH                                                        │
+# │ 📚 HELP                                                                      │
 # └──────────────────────────────────────────────────────────────────────────────┘
 
-# zhelp — Tampilkan semua perintah custom beserta kegunaannya
 zhelp() {
-  cat << 'EOF'
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                      🚀 REFERENSI PERINTAH ZSH CUSTOM                        ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  📁 FILE & NAVIGASI                                                          ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  mkcd <dir>           Buat folder dan langsung masuk                         ║
-║  extract <file>       Ekstrak semua format arsip otomatis                    ║
-║  lt / lta             Tampilan tree 2 level / + file tersembunyi             ║
-║  ..                   Naik 1 direktori                                       ║
-║  -                    Kembali ke direktori sebelumnya                        ║
-║                                                                              ║
-║  💻 PENGEMBANGAN                                                             ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  compile <file.c> [args]    Kompilasi dan jalankan program C                 ║
-║  bench <perintah>           Ukur waktu eksekusi perintah                     ║
-║                                                                              ║
-║  🔧 ALUR KERJA GIT                                                           ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  gacp "pesan"               Add + commit + push (satu perintah)              ║
-║  gaacp                      Seperti gacp, pesan commit dibuat AI             ║
-║  zpush ["pesan"]            Sinkronisasi .zshrc ke repo backup               ║
-║  ga / gs / gl / gd          Pintasan git (add, status, log, diff)            ║
-║                                                                              ║
-║  🛠️  UTILITAS                                                                ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  githack <url>              Konversi URL GitHub ke CDN link                  ║
-║  rmnoext                    Hapus file tanpa ekstensi (dengan konfirmasi)    ║
-║  y [path]                   Buka Yazi, keluar otomatis pindah direktori      ║
-║                                                                              ║
-║  ⚙️  KONFIGURASI                                                             ║
-║  ──────────────────────────────────────────────────────────────────────────  ║
-║  zconfig                    Edit konfigurasi ini                             ║
-║  zreload                    Reload konfigurasi ZSH                           ║
-║  zhelp                      Tampilkan referensi ini                          ║
-║  q                          Keluar dari terminal                             ║
-║                                                                              ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║  💡 TIP: Ketik 'zhelp' kapanpun untuk melihat referensi ini!                 ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-EOF
+  echo "🚀 ZSH Custom Commands"
+  echo ""
+  echo "mkcd <dir>       → buat folder & masuk"
+  echo "compile file.c   → compile & run C"
+  echo "gacp \"msg\"      → add + commit + push"
+  echo "gaacp            → AI commit"
+  echo "zpush            → backup .zshrc"
+  echo "githack <url>    → convert GitHub URL"
+  echo "bench <cmd>      → benchmark command"
+  echo "y                → yazi wrapper"
 }
 
-export EDITOR=micro          # Set editor default ke Micro
-eval "$(starship init zsh)"  # Inisialisasi prompt Starship
+# ┌──────────────────────────────────────────────────────────────────────────────┐
+# │ 🚀 PROMPT                                                                    │
+# └──────────────────────────────────────────────────────────────────────────────┘
+
+export EDITOR=micro
+
+eval "$(starship init zsh)"
