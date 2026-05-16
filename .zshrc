@@ -64,6 +64,8 @@ bindkey '^[[A' up-line-or-history
 bindkey '^[[B' down-line-or-history
 bindkey '^[[C' forward-char
 bindkey '^[[D' backward-char
+bindkey '^[[1;5D' backward-word
+bindkey '^[[1;5C' forward-word
 
 # Accept autosuggestion
 bindkey '^ ' autosuggest-accept
@@ -130,13 +132,26 @@ setopt INTERACTIVE_COMMENTS
 
 # ── Listing & Navigasi ────────────────────────────────────────────────────────
 
-EZA_IGNORE="node_modules|vendor|dist|build|coverage|.git|.next|.nuxt|target"
+EZA_IGNORE='node_modules|vendor|dist|build|coverage|.git|.next|.nuxt|target'
 
-alias ls="eza --icons --group-directories-first --color=auto --ignore-glob=$EZA_IGNORE"
-alias ll="eza -lh --icons --git --ignore-glob=$EZA_IGNORE"
-alias la="eza -la --icons --git --ignore-glob=$EZA_IGNORE"
-alias lt="eza -T --icons --level=2 --ignore-glob=$EZA_IGNORE"
-alias lta="eza -Ta --icons --level=2 --ignore-glob=$EZA_IGNORE"
+_eza() {
+  local has_tree=false
+  for arg in "$@"; do
+    [[ "$arg" == "--tree" || "$arg" == "-T" ]] && has_tree=true
+  done
+
+  if $has_tree; then
+    command eza --icons --group-directories-first --color=auto -I "$EZA_IGNORE" "$@"
+  else
+    command eza --icons --group-directories-first --color=auto "$@"
+  fi
+}
+
+alias ls='_eza'
+alias ll='_eza -lh --git'
+alias la='_eza -la --git'
+alias lt='_eza -T --level=2'
+alias lta='_eza -Ta --level=2'
 
 alias ..='cd ..'
 alias -- -='cd -'
