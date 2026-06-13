@@ -1,3 +1,7 @@
+export PATH="/run/user/1000/fnm_multishells/99393_1779269782198/bin:$PATH"
+export PATH="/run/user/1000/fnm_multishells/90712_1779268358550/bin:$PATH"
+export PATH="/home/ryoukaii/.local/share/fnm/node-versions/v24.15.0/installation/bin:$PATH"
+export DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║                     🚀 KONFIGURASI ZSH PRIBADI - CACHYOS                     ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
@@ -110,7 +114,8 @@ export FZF_DEFAULT_OPTS="--height 70% \
 --border=top \
 --style=full \
 --preview '~/.local/bin/fzf-preview.sh {}' \
---bind 'focus:transform-header:file --brief {}'"
+--bind 'focus:transform-header:file --brief {} 2>/dev/null || echo {}'"
+
 
 export FZF_BASE=/usr/share/fzf
 
@@ -208,6 +213,15 @@ alias jctl="journalctl -p 3 -xb"
 # ── Misc ──────────────────────────────────────────────────────────────────────
 
 alias tb="nc termbin.com 9999"
+
+alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'
+
+alias rgf='rg --line-number --no-heading . | fzf \
+  --delimiter=":" \
+  --nth=3.. \
+  --preview "~/.local/bin/fzf-preview.sh {1}:{2} 2>/dev/null" \
+  --preview-window "right:60%:+{2}-5" \
+  --bind "focus:transform-header:echo {1} 2>/dev/null"'
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🔌 PLUGINS                                                                   │
@@ -443,6 +457,16 @@ zhelp() {
 # │ 🚀 PROMPT                                                                    │
 # └──────────────────────────────────────────────────────────────────────────────┘
 
-export EDITOR=micro
+export EDITOR=fresh
 
 eval "$(starship init zsh)"
+
+# OpenClaw Completion
+[ -f "/home/ryoukaii/.openclaw/completions/openclaw.zsh" ] && source "/home/ryoukaii/.openclaw/completions/openclaw.zsh"
+
+# bun completions
+[ -s "/home/ryoukaii/.bun/_bun" ] && source "/home/ryoukaii/.bun/_bun"
+
+. "$HOME/.atuin/bin/env"
+
+eval "$(atuin init zsh)"
