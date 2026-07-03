@@ -30,6 +30,7 @@ unset PROMPT_COMMAND
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=10000
 SAVEHIST=10000
+HISTDUP=erase
 
 # Sync history realtime antar terminal
 setopt APPEND_HISTORY
@@ -70,6 +71,11 @@ bindkey '^[[C' forward-char
 bindkey '^[[D' backward-char
 bindkey '^[[1;5D' backward-word
 bindkey '^[[1;5C' forward-word
+bindkey -r '^S'
+
+autoload -Uz edit-command-line
+zle -N edit-command-line
+bindkey '^x^x' edit-command-line
 
 # Accept autosuggestion
 bindkey '^ ' autosuggest-accept
@@ -213,6 +219,8 @@ alias jctl="journalctl -p 3 -xb"
 # ── Misc ──────────────────────────────────────────────────────────────────────
 
 alias tb="nc termbin.com 9999"
+
+alias f="fresh"
 
 alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'
 
@@ -436,6 +444,7 @@ chpwd() {
   eza --icons --group-directories-first
 }
 
+
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 📚 HELP                                                                      │
 # └──────────────────────────────────────────────────────────────────────────────┘
@@ -470,3 +479,6 @@ eval "$(starship init zsh)"
 . "$HOME/.atuin/bin/env"
 
 eval "$(atuin init zsh)"
+stty -ixon
+export PATH="/home/ryoukaii/.config/herd-lite/bin:$PATH"
+export PHP_INI_SCAN_DIR="/home/ryoukaii/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
