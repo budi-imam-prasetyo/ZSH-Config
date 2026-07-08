@@ -322,6 +322,26 @@ gacp() {
   fi
 }
 
+# gac — Add + Commit
+gac() {
+  if [[ -z "$1" ]]; then
+    echo "⚠️  Penggunaan: gac \"pesan commit\""
+    return 1
+  fi
+
+  local branch
+  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+  [[ -z "$branch" ]] && {
+    echo "❌ Bukan repositori Git!"
+    return 1
+  }
+
+  echo "📦 Commit ke branch: $branch"
+
+  git add . && git commit -m "$1"
+}
+
 # gaacp — AI commit
 gaacp() {
   local branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
@@ -352,14 +372,21 @@ zpush() {
   local repo="$HOME/ZSH-Config"
   local source="$HOME/.zshrc"
 
-  [[ ! -f "$source" ]] && echo "❌ File tidak ditemukan: $source" && return 1
-  [[ ! -d "$repo/.git" ]] && echo "❌ Repo backup belum diinisialisasi: $repo" && return 1
+  [[ -f "$source" ]] || {
+    echo "❌ File tidak ditemukan: $source"
+    return 1
+  }
 
-  cp -f "$source" "$repo/" || return 1
+  [[ -d "$repo/.git" ]] || {
+    echo "❌ Repo backup belum diinisialisasi: $repo"
+    return 1
+  }
+
+  cp -f "$source" "$repo/.zshrc" || return 1
 
   if [[ -z "$(git -C "$repo" status --porcelain)" ]]; then
-    echo "⚠️  Tidak ada perubahan pada .zshrc"
-    return 1
+    echo "⚠️ Tidak ada perubahan pada .zshrc"
+    return 0
   fi
 
   git -C "$repo" add . || return 1
@@ -367,19 +394,23 @@ zpush() {
   if [[ -n "$1" ]]; then
     git -C "$repo" commit -m "$1" || return 1
   else
-    if ! command -v aicommits >/dev/null 2>&1; then
+    command -v aicommits >/dev/null 2>&1 || {
       echo "❌ 'aicommits' belum terinstall."
       return 1
-    fi
+    }
 
     echo "🤖 Membuat commit dengan AI..."
     (cd "$repo" && aicommits) || return 1
   fi
 
-  if git ls-remote origin &>/dev/null; then
-    git -C "$repo" push && echo "🚀 Backup berhasil dipush!"
+  echo "🚀 Push ke remote..."
+
+  if git -C "$repo" push; then
+    echo "✅ Backup berhasil dipush!"
   else
-    echo "⚠️  Offline. Jalankan 'git push' nanti."
+    echo "❌ Push gagal."
+    echo "   Periksa koneksi, SSH key, atau remote Git."
+    return 1
   fi
 }
 
