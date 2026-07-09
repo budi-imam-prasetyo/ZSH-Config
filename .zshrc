@@ -389,6 +389,9 @@ zpush() {
     return 0
   fi
 
+  local branch
+  branch=$(git -C "$repo" rev-parse --abbrev-ref HEAD)
+
   git -C "$repo" add . || return 1
 
   if [[ -n "$1" ]]; then
@@ -403,13 +406,20 @@ zpush() {
     (cd "$repo" && aicommits) || return 1
   fi
 
-  echo "🚀 Push ke remote..."
+  echo "🌐 Mengecek koneksi ke remote..."
 
-  if git -C "$repo" push; then
+  if ! git -C "$repo" ls-remote origin &>/dev/null; then
+    echo "⚠️ Tidak dapat menghubungi remote."
+    echo "   Periksa koneksi internet, SSH key, atau URL remote."
+    return 1
+  fi
+
+  echo "🚀 Push ke branch '$branch'..."
+
+  if git -C "$repo" push -u origin "$branch"; then
     echo "✅ Backup berhasil dipush!"
   else
     echo "❌ Push gagal."
-    echo "   Periksa koneksi, SSH key, atau remote Git."
     return 1
   fi
 }
