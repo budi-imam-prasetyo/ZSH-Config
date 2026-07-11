@@ -172,7 +172,7 @@ alias -- -='cd -'
 alias c='clear'
 alias q='exit'
 
-alias zconfig='code ~/.zshrc'
+alias zconfig='code ~/ZSH-Config/.zshrc'
 alias zreload='exec zsh'
 
 # ── Pintasan Pengembangan ─────────────────────────────────────────────────────
@@ -367,27 +367,19 @@ gaacp() {
   fi
 }
 
-# zpush — Backup .zshrc
+# zpush — Commit & push ZSH-Config
 zpush() {
   local repo="$HOME/ZSH-Config"
-  local source="$HOME/.zshrc"
-
-  [[ -f "$source" ]] || {
-    echo "❌ File tidak ditemukan: $source"
-    return 1
-  }
 
   [[ -d "$repo/.git" ]] || {
-    echo "❌ Repo backup belum diinisialisasi: $repo"
+    echo "❌ Repository tidak ditemukan: $repo"
     return 1
   }
 
-  cp -f "$source" "$repo/.zshrc" || return 1
-
-  if [[ -z "$(git -C "$repo" status --porcelain)" ]]; then
-    echo "⚠️ Tidak ada perubahan pada .zshrc"
+  [[ -n "$(git -C "$repo" status --porcelain)" ]] || {
+    echo "⚠️ Tidak ada perubahan untuk di-commit."
     return 0
-  fi
+  }
 
   local branch
   branch=$(git -C "$repo" rev-parse --abbrev-ref HEAD)
@@ -408,20 +400,20 @@ zpush() {
 
   echo "🌐 Mengecek koneksi ke remote..."
 
-  if ! git -C "$repo" ls-remote origin &>/dev/null; then
+  git -C "$repo" ls-remote origin &>/dev/null || {
     echo "⚠️ Tidak dapat menghubungi remote."
     echo "   Periksa koneksi internet, SSH key, atau URL remote."
     return 1
-  fi
+  }
 
   echo "🚀 Push ke branch '$branch'..."
 
-  if git -C "$repo" push -u origin "$branch"; then
-    echo "✅ Backup berhasil dipush!"
-  else
+  git -C "$repo" push -u origin "$branch" || {
     echo "❌ Push gagal."
     return 1
-  fi
+  }
+
+  echo "✅ ZSH-Config berhasil dipush!"
 }
 
 # githack — Convert GitHub URL
