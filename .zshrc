@@ -99,6 +99,7 @@ path=(
 export PATH
 export MICRO_TRUECOLOR=1
 export BAT_THEME="Catppuccin Mocha"
+export PATH="$HOME/go/bin:$PATH"
 
 # ── Inisialisasi Tool ─────────────────────────────────────────────────────────
 
@@ -172,7 +173,7 @@ alias -- -='cd -'
 alias c='clear'
 alias q='exit'
 
-alias zconfig='code ~/ZSH-Config/.zshrc'
+alias zconfig='code ~/ZSH-Config'
 alias zreload='exec zsh'
 
 # ── Pintasan Pengembangan ─────────────────────────────────────────────────────
