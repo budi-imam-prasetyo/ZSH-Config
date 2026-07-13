@@ -177,27 +177,8 @@ alias q='exit'
 alias zconfig='code ~/ZSH-Config'
 alias zreload='exec zsh'
 
-# ── Pintasan Pengembangan ─────────────────────────────────────────────────────
-
-alias ga='git add .'
-alias gs='git status -sb'
-alias gl='git log --oneline -15'
-alias gd='git diff'
-
-# Docker Laravel
-alias artisan='docker compose exec app php artisan'
-alias composer='docker compose exec app composer'
-
-# ── Build ─────────────────────────────────────────────────────────────────────
-
-alias make="make -j$(nproc)"
-alias n="ninja -j$(nproc)"
-
 # ── Pacman ────────────────────────────────────────────────────────────────────
 
-alias rmpkg="sudo pacman -Rsn"
-alias cleanch="sudo pacman -Scc"
-alias fixpacman="sudo rm /var/lib/pacman/db.lck"
 alias update="sudo pacman -Syu"
 
 # Cleanup orphaned packages
@@ -206,9 +187,6 @@ alias cleanup="sudo pacman -Rsn \$(pacman -Qtdq)"
 # ── Arch Helper ───────────────────────────────────────────────────────────────
 
 alias wl="wl-copy <"
-alias apt="man pacman"
-alias apt-get="man pacman"
-alias please="sudo"
 
 # ── Logs ──────────────────────────────────────────────────────────────────────
 
@@ -216,18 +194,7 @@ alias jctl="journalctl -p 3 -xb"
 
 # ── Misc ──────────────────────────────────────────────────────────────────────
 
-alias tb="nc termbin.com 9999"
-
 alias f="fresh"
-
-alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'
-
-alias rgf='rg --line-number --no-heading . | fzf \
-  --delimiter=":" \
-  --nth=3.. \
-  --preview "~/.local/bin/fzf-preview.sh {1}:{2} 2>/dev/null" \
-  --preview-window "right:60%:+{2}-5" \
-  --bind "focus:transform-header:echo {1} 2>/dev/null"'
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🔌 PLUGINS                                                                   │
@@ -489,37 +456,35 @@ githack() {
 # bench — Benchmark command
 bench() {
   emulate -L zsh
-  local ret
-  if (( $+commands[gtime] )); then
-    command gtime -f "\n⏱ real %E\n🧠 user %U\n⚙ sys %S" "$@"
-    ret=$?
-  else
-    command time -f "\n⏱ real %E\n🧠 user %U\n⚙ sys %S" "$@"
-    ret=$?
-  fi
-  return $ret
-}
 
-# y — Yazi wrapper
-function y() {
-  emulate -L zsh
-  local tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
-  [[ -z "$tmp" ]] && { echo "❌ Gagal membuat temp file"; return 1 }
+  local timer
+  timer=${commands[gtime]:-${commands[time]}}
 
-  trap 'rm -f -- "$tmp"' INT TERM EXIT
+  [[ -n $timer ]] || {
+    print -u2 "bench: GNU time (gtime/time) tidak ditemukan"
+    return 127
+  }
 
-  command yazi "$@" --cwd-file="$tmp"
+  {
+    "$timer" -f '%e %U %S' "$@"
+  } 2> >(
+    awk '
+    {
+        real = $1 * 1000
+        user = $2 * 1000
+        sys  = $3 * 1000
+        cpu  = user + sys
+        pct  = (real > 0) ? cpu / real * 100 : 0
 
-  local ret=$?
-  trap - INT TERM EXIT
+        printf "\n"
+        printf "⏱  Real : %9.3f ms\n", real
+        printf "🧠 User : %9.3f ms\n", user
+        printf "⚙  Sys  : %9.3f ms\n", sys
+        printf "🔥 CPU  : %9.3f ms (%5.1f%%)\n", cpu, pct
+    }'
+  )
 
-  if [[ -r "$tmp" ]]; then
-    IFS= read -r -d '' cwd < "$tmp"
-    [[ "$cwd" != "$PWD" ]] && [[ -d "$cwd" ]] && builtin cd -- "$cwd"
-  fi
-
-  rm -f -- "$tmp"
-  return $ret
+  return ${pipestatus[1]}
 }
 
 # Auto ls saat pindah folder
@@ -531,27 +496,6 @@ do-ls() {
 }
 
 add-zsh-hook chpwd do-ls
-
-
-# ┌──────────────────────────────────────────────────────────────────────────────┐
-# │ 📚 HELP                                                                      │
-# └──────────────────────────────────────────────────────────────────────────────┘
-
-zhelp() {
-  emulate -L zsh
-  echo "🚀 ZSH Custom Commands"
-  echo ""
-  echo "mkcd <dir>       → buat folder & masuk"
-  echo "compile file.c   → compile & run C"
-  echo "rmnoext          → hapus file tanpa ekstensi"
-  echo "gac \"msg\"       → add + commit"
-  echo "gacp \"msg\"      → add + commit + push"
-  echo "gaacp            → AI commit + push"
-  echo "zpush [msg]      → backup .zshrc (AI/auto)"
-  echo "githack <url>    → convert GitHub URL"
-  echo "bench <cmd>      → benchmark command"
-  echo "y [dir]          → yazi wrapper"
-}
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🚀 PROMPT                                                                    │
