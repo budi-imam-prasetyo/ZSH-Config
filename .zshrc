@@ -119,12 +119,27 @@ export PHP_INI_SCAN_DIR="/home/ryoukaii/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
 # │ 🔎 FZF                                                                       │
 # └──────────────────────────────────────────────────────────────────────────────┘
 
+# Clipboard on accept (detected once; no-op if none available)
+if command -v wl-copy >/dev/null 2>&1; then
+  _FZF_CLIP_BIND="--bind 'enter,double-click:execute-silent(cat {+f} | wl-copy)+accept'"
+elif command -v xclip >/dev/null 2>&1; then
+  _FZF_CLIP_BIND="--bind 'enter,double-click:execute-silent(cat {+f} | xclip -selection clipboard)+accept'"
+elif command -v xsel >/dev/null 2>&1; then
+  _FZF_CLIP_BIND="--bind 'enter,double-click:execute-silent(cat {+f} | xsel --clipboard --input)+accept'"
+elif command -v pbcopy >/dev/null 2>&1; then
+  _FZF_CLIP_BIND="--bind 'enter,double-click:execute-silent(cat {+f} | pbcopy)+accept'"
+else
+  _FZF_CLIP_BIND=
+fi
+
 export FZF_DEFAULT_OPTS="--height 70% \
 --layout=reverse \
 --border=top \
 --style=full \
 --preview '~/.local/bin/fzf-preview.sh {}' \
---bind 'focus:transform-header:file --brief {} 2>/dev/null || echo {}'"
+--bind 'focus:transform-header:file --brief {} 2>/dev/null || echo {}' \
+${_FZF_CLIP_BIND}"
+unset _FZF_CLIP_BIND
 
 export FZF_BASE=/usr/share/fzf
 
