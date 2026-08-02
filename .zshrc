@@ -16,6 +16,7 @@ plugins=(
 
 # Load konfigurasi bawaan CachyOS
 source /usr/share/cachyos-zsh-config/cachyos-config.zsh
+# source ~/zsh-sage/zsh-sage.plugin.zsh
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ ⚠️  FIX HISTORY, AUTOSUGGEST & COMPLETION                                    │
@@ -184,6 +185,8 @@ alias lta='_eza -Ta --level=2'
 alias ..='cd ..'
 alias -- -='cd -'
 
+alias esco='code ~/.config/espanso/match/base.yml'
+
 # ── Sistem & Produktivitas ────────────────────────────────────────────────────
 
 alias c='clear'
@@ -192,12 +195,30 @@ alias q='exit'
 alias zconfig='code ~/ZSH-Config'
 alias zreload='exec zsh'
 
-# ── Pacman ────────────────────────────────────────────────────────────────────
+# Install
+alias i="paru -S"
 
-alias update="sudo pacman -Syu"
+# Remove
+alias rmPkg="paru -Rns"
 
-# Cleanup orphaned packages
-alias cleanup="sudo pacman -Rsn \$(pacman -Qtdq)"
+# Update
+alias up="paru -Syu"
+
+# Search
+alias s="paru -Ss"
+
+# Info
+alias info="paru -Si"
+
+# Orphan
+alias orphan="paru -Qdt"
+
+# Clean orphan
+alias clean-orphan="paru -Rns \$(paru -Qdtq)"
+
+# Clean cache
+alias clean-cache="paru -Sc"
+alias clean-cache-all="paru -Scc"
 
 # ── Arch Helper ───────────────────────────────────────────────────────────────
 
@@ -609,3 +630,32 @@ eval "$(starship init zsh)"
 
 eval "$(atuin init zsh)"
 stty -ixon
+
+#compdef opencode
+###-begin-opencode-completions-###
+#
+# yargs command completion script
+#
+# Installation: opencode completion >> ~/.zshrc
+#    or opencode completion >> ~/.zprofile on OSX.
+#
+_opencode_yargs_completions()
+{
+  local reply
+  local si=$IFS
+  IFS=$'
+' reply=($(COMP_CWORD="$((CURRENT-1))" COMP_LINE="$BUFFER" COMP_POINT="$CURSOR" opencode --get-yargs-completions "${words[@]}"))
+  IFS=$si
+  if [[ ${#reply} -gt 0 ]]; then
+    _describe 'values' reply
+  else
+    _default
+  fi
+}
+if [[ "'${zsh_eval_context[-1]}" == "loadautofunc" ]]; then
+  _opencode_yargs_completions "$@"
+else
+  compdef _opencode_yargs_completions opencode
+fi
+###-end-opencode-completions-###
+
