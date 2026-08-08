@@ -75,6 +75,7 @@ bindkey '^[[1;5D' backward-word
 bindkey '^[[1;5C' forward-word
 bindkey -r '^S'
 
+
 autoload -Uz edit-command-line
 zle -N edit-command-line
 bindkey '^x^x' edit-command-line
@@ -193,6 +194,7 @@ alias c='clear'
 alias q='exit'
 
 alias zconfig='code ~/ZSH-Config'
+alias zfast='fresh ~/ZSH-Config/.zshrc'
 alias zreload='exec zsh'
 
 # Install
@@ -244,7 +246,7 @@ source /usr/share/fzf/key-bindings.zsh
 
 # Plugin order: autosuggestions → syntax-highlighting → history-substring-search
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -632,7 +634,7 @@ eval "$(atuin init zsh)"
 stty -ixon
 
 #compdef opencode
-###-begin-opencode-completions-###
+###-begin-opencode-completion`s-###
 #
 # yargs command completion script
 #
@@ -659,3 +661,4 @@ else
 fi
 ###-end-opencode-completions-###
 
+eval "$(zsh-patina activate)"
