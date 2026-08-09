@@ -27,28 +27,27 @@ unset PROMPT_COMMAND
 
 # History
 HISTFILE="$HOME/.zsh_history"
-HISTSIZE=10000
-SAVEHIST=10000
+HISTSIZE=50000
+SAVEHIST=50000
 HIST_STAMPS="yyyy-mm-dd"
 
 # Format history
 setopt EXTENDED_HISTORY
 
 # Sync history realtime antar terminal
-setopt SHARE_HISTORY
+# setopt SHARE_HISTORY
 
 # Hindari duplicate history
 setopt HIST_IGNORE_ALL_DUPS
 setopt HIST_IGNORE_SPACE
 setopt HIST_FIND_NO_DUPS
 setopt HIST_SAVE_NO_DUPS
-setopt HIST_EXPIRE_DUPS_FIRST
 setopt HIST_VERIFY
 
 # Completion system (zmodload harus sebelum compinit)
-zmodload zsh/complist
-autoload -Uz compinit
-compinit
+# zmodload zsh/complist
+# autoload -Uz compinit
+# compinit
 
 # Completion behavior
 setopt AUTO_MENU
@@ -65,6 +64,8 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 ZSH_AUTOSUGGEST_USE_ASYNC=1
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=50
+
+stty -ixon
 
 # Keybindings
 bindkey '^[[A' up-line-or-history
@@ -103,7 +104,6 @@ path=(
 export PATH
 export MICRO_TRUECOLOR=1
 export BAT_THEME="Catppuccin Mocha"
-export PHP_INI_SCAN_DIR="/home/ryoukaii/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
 
 # ── Inisialisasi Tool ─────────────────────────────────────────────────────────
 
@@ -200,7 +200,7 @@ alias zreload='exec zsh'
 alias i="paru -S"
 
 # Remove
-alias rmPkg="paru -Rns"
+alias rmpkg="paru -Rns"
 
 # Update
 alias up="paru -Syu"
@@ -233,6 +233,13 @@ alias jctl="journalctl -p 3 -xb"
 
 alias f="fresh"
 
+alias z='zellij'                    # start fresh session
+alias za='zellij attach --create'   # attach atau create (paling sering dipakai)
+alias zls='zellij list-sessions'    # list active sessions
+alias zk='zellij kill-all-sessions' # nuke semua session
+alias zr='zellij run --'            # run command di pane baru
+alias ze='zellij edit'              # edit file di pane baru
+
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🔌 PLUGINS                                                                   │
 # └──────────────────────────────────────────────────────────────────────────────┘
@@ -246,7 +253,7 @@ source /usr/share/fzf/key-bindings.zsh
 # Plugin order: autosuggestions → syntax-highlighting → history-substring-search
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 # source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-source /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh
+# source /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh
 
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🛠️  FUNCTIONS                                                                │
@@ -484,8 +491,8 @@ githack() {
 
   echo "🌐 $out"
 
-  if (( $+commands[xclip] )); then
-    echo -n "$out" | xclip -selection clipboard
+  if (( $+commands[wl-copy] )); then
+    echo -n "$out" | wl-copy -selection clipboard
     echo "📋 Disalin ke clipboard!"
   fi
 }
@@ -493,84 +500,6 @@ githack() {
 # day — Tambah baris materi belajar ke file, lalu commit+push otomatis
 # Usage: day rust.txt "day 1 | Rust Book | https://doc.rust-lang.org/book/"
 # Workflow: cd → validasi git/main → pull --rebase → validasi file → append → add/commit/push
-day() {
-  emulate -L zsh
-  setopt localoptions err_return nounset
-
-  local project_dir="/home/ryoukaii/Projects/day"
-  local data_dir="$project_dir/src/data"
-  local expected_branch="main"
-  local filename="$1"
-  local input="$2"
-  local old_pwd="$PWD"
-
-  # Pulihkan directory saat keluar (Ctrl+C/error)
-  trap 'cd -- "$old_pwd" 2>/dev/null; trap - EXIT INT TERM' EXIT INT TERM
-
-  # 1) Validasi parameter
-  [[ -n "$filename" ]] || { print -u2 "❌ Error: nama file tidak boleh kosong."; return 1 }
-  [[ -n "$input" ]] || { print -u2 "❌ Error: string yang ingin ditambahkan tidak boleh kosong."; return 1 }
-
-  # 2) Cegah path traversal (tolak / dan \)
-  [[ "$filename" != *" "* ]] || { print -u2 "❌ Error: nama file tidak boleh mengandung spasi."; return 1 }
-  [[ "$filename" != *"/"* ]] || { print -u2 "❌ Error: nama file tidak boleh mengandung '/'."; return 1 }
-  [[ "$filename" != *".."* ]] || { print -u2 "❌ Error: nama file tidak boleh mengandung '..'."; return 1 }
-
-  # 3) Masuk ke project
-  [[ -d "$project_dir" ]] || { print -u2 "❌ Directory tidak ditemukan: $project_dir"; return 1 }
-  cd -- "$project_dir" || { print -u2 "❌ Gagal masuk ke: $project_dir"; return 1 }
-
-  # 4) Pastikan repo Git valid
-  git rev-parse --is-inside-work-tree &>/dev/null || { print -u2 "❌ Bukan repositori Git: $project_dir"; return 1 }
-
-  # 5) Pastikan branch main
-  local branch
-  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || { print -u2 "❌ Gagal membaca branch saat ini."; return 1 }
-  [[ "$branch" == "$expected_branch" ]] || { print -u2 "❌ Branch harus '$expected_branch' (sekarang: $branch). Jalankan: git checkout $expected_branch"; return 1 }
-
-  # 6) Pull origin/main dengan rebase
-  print "⬇️  git pull --rebase origin $expected_branch..."
-  git pull --rebase origin "$expected_branch" || { print -u2 "❌ git pull gagal. Selesaikan konflik/diverged dulu."; return 1 }
-
-  # 7) Validasi file (hanya di dalam $data_dir)
-  local target="$data_dir/$filename"
-  [[ -f "$target" ]] || { print -u2 "❌ File tidak ditemukan: $target"; return 1 }
-
-  # 8) Cek baris terakhir identik? (skip jika sudah sama)
-  local last_line
-  last_line=$(tail -n 1 -- "$target" 2>/dev/null) || last_line=""
-  if [[ "$last_line" == "$input" ]]; then
-    print "⚠️  Data terakhir sudah sama. Tidak ada yang diubah."
-    return 0
-  fi
-
-  # 9) Append dengan newline yang benar
-  # Cek apakah file diakhiri newline
-  if [[ -s "$target" ]]; then
-    local last_byte
-    last_byte=$(tail -c 1 -- "$target" | od -An -tx1)
-    if [[ "$last_byte" != " 0a" ]]; then
-      printf '\n' >> "$target" || { print -u2 "❌ Gagal menambahkan newline."; return 1 }
-    fi
-  fi
-
-  # Append baris baru
-  printf '%s\n' "$input" >> "$target" || { print -u2 "❌ Gagal append ke file."; return 1 }
-
-  # 10) git add .
-  git add . || { print -u2 "❌ git add gagal."; return 1 }
-
-  # 11) Commit dengan timestamp WIB
-  local msg
-  msg=$(TZ=Asia/Jakarta date '+%Y-%m-%d %H:%M:%S WIB')
-  git commit -m "$msg" || { print -u2 "❌ git commit gagal."; return 1 }
-
-  # 12) Push ke origin/main
-  git push -u origin "$expected_branch" || { print -u2 "❌ git push gagal."; return 1 }
-
-  print "✅ Selesai. Commit: $msg"
-  return 0
-}
 
 # bench — Benchmark command
 bench() {
@@ -630,7 +559,6 @@ eval "$(starship init zsh)"
 . "$HOME/.atuin/bin/env"
 
 eval "$(atuin init zsh)"
-stty -ixon
 
 #compdef opencode
 ###-begin-opencode-completion`s-###
