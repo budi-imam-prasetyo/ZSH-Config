@@ -98,10 +98,11 @@ path=(
   $HOME/.bun/bin
   $HOME/go/bin
   $HOME/.config/herd-lite/bin
+  $HOME/.local/share/pnpm/bin
   $path
 )
 
-export PATH
+export PNPM_HOME="$HOME/.local/share/pnpm"
 export MICRO_TRUECOLOR=1
 export BAT_THEME="Catppuccin Mocha"
 
@@ -197,6 +198,7 @@ alias zfast='fresh ~/ZSH-Config/.zshrc'
 alias zreload='exec zsh'
 
 # Install
+alias yay="paru"
 alias i="paru -S"
 
 # Remove
