@@ -591,3 +591,74 @@ fi
 ###-end-opencode-completions-###
 
 eval "$(zsh-patina activate)"
+
+source /home/ryoukaii/.config/broot/launcher/bash/br
+
+autoload -Uz add-zsh-hook
+
+_notify_preexec() {
+    _CMD_START_TIME=$(date +%s)
+    _LAST_CMD="$1"
+    
+    # [IDE 1] Mengubah /home/user menjadi ~ agar lebih singkat di notifikasi
+    _CMD_DIR="${PWD/#$HOME/~}"
+}
+
+_notify_precmd() {
+    local exit_code=$?
+    
+    # [IDE 2] Jangan kirim notifikasi "Gagal" jika dibatalkan sengaja dengan Ctrl+C
+    if [[ $exit_code -eq 130 ]]; then
+        unset _CMD_START_TIME
+        unset _LAST_CMD
+        unset _CMD_DIR
+        return
+    fi
+
+    if [[ -n "$_CMD_START_TIME" ]]; then
+        local cmd_end_time=$(date +%s)
+        local elapsed=$((cmd_end_time - _CMD_START_TIME))
+
+        # Hanya kirim notifikasi jika command memakan waktu lebih dari 3 detik
+        if [[ $elapsed -ge 3 ]]; then
+            
+            # 1. Format Waktu Cerdas (Ubah > 60s jadi format menit)
+            local time_str=""
+            if [[ $elapsed -ge 60 ]]; then
+                time_str="$((elapsed / 60))m $((elapsed % 60))s"
+            else
+                time_str="${elapsed}s"
+            fi
+
+            # 2. Potong command yang terlalu panjang (maksimal 50 karakter)
+            local display_cmd="$_LAST_CMD"
+            if [[ ${#display_cmd} -gt 50 ]]; then
+                display_cmd="${display_cmd:0:47}..."
+            fi
+
+            # [IDE 3] Menambahkan ID Window Kitty di baris direktori
+            local window_info=""
+            if [[ -n "$KITTY_WINDOW_ID" ]]; then
+                window_info="TAB $KITTY_WINDOW_ID"
+            fi
+
+            # 3. Eksekusi Notifikasi dengan Urgency & Direktori
+            if [[ $exit_code -eq 0 ]]; then
+                kitten notify -u normal -n info -a $window_info \
+                    "✅ $display_cmd ($time_str)" \
+                    "📁 : $_CMD_DIR"
+            else
+                kitten notify -u critical -n error -a $window_info \
+                    "❌ $display_cmd ($time_str) [Code: $exit_code]" \
+                    "📁 : $_CMD_DIR"
+            fi
+        fi
+        
+        unset _CMD_START_TIME
+        unset _LAST_CMD
+        unset _CMD_DIR
+    fi
+}
+
+add-zsh-hook preexec _notify_preexec
+add-zsh-hook precmd _notify_precmd
