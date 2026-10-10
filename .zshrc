@@ -185,6 +185,7 @@ export FZF_DEFAULT_OPTS="--height 80% \
 --track \
 --ellipsis '…' \
 --scrollbar '▐' \
+--tabstop 2 \
 --separator '─' \
 --ghost 'Ketik untuk mencari…' \
 --info=inline-right \
@@ -198,11 +199,25 @@ export FZF_DEFAULT_OPTS="--height 80% \
 --color=border:#89b4fa,label:#b4befe,separator:#45475a,preview-border:#89b4fa \
 --color=preview-label:#b4befe,input-border:#89b4fa,input-label:#b4befe \
 --color=header-border:#45475a,list-border:#89b4fa,list-label:#b4befe \
---color=gutter:#1e1e2e,preview-scrollbar:#45475a,ghost:#6c7086 \
---bind 'ctrl-/:change-preview-window(down,50%|right,55%)' \
+--color=gutter:#1e1e2e,scrollbar:#45475a,preview-scrollbar:#45475a,ghost:#6c7086 \
+--bind 'ctrl-/:change-preview-window(down,50%|hidden|right,55%)' \
 --bind 'ctrl-u:half-page-up,ctrl-d:half-page-down' \
 ${_FZF_CLIP_BIND}"
 unset _FZF_CLIP_BIND
+
+# ── Profil per-konsumen ──────────────────────────────────────────────────────
+# key-bindings.zsh menempelkan variabel ini SETELAH FZF_DEFAULT_OPTS,
+# jadi flag di sini menang atas default global di atas.
+# Ctrl-T: file picker → preview + multi-select (flag -m dari key-bindings)
+export FZF_CTRL_T_OPTS="--border-label ' 📁 Files '"
+# Alt-C: direktori → preview isi folder (ditangani fzf-preview.sh)
+export FZF_ALT_C_OPTS="--border-label ' 📂 Dirs '"
+# Ctrl-R: riwayat shell → baris teks, preview tak relevan → matikan
+# agar list full-width (header otomatis = baris perintah yang difokus)
+export FZF_CTRL_R_OPTS="--no-preview \
+--border-label ' 🕘 History '"
+# **<TAB> completion: biarkan default global + apa kata completion.zsh
+# (ia sudah mengatur --no-preview sendiri untuk kandidat non-file)
 
 export FZF_BASE=/usr/share/fzf
 
@@ -291,6 +306,13 @@ alias ze='zellij edit'              # edit file di pane baru
 # ┌──────────────────────────────────────────────────────────────────────────────┐
 # │ 🛠️  FUNCTIONS                                                                │
 # └──────────────────────────────────────────────────────────────────────────────┘
+
+t() {
+  /usr/bin/zsh -lic '
+    cd "$1" || exit 1
+    exec /usr/bin/kitty --directory "$1" /usr/bin/terax .
+  ' _ "$PWD"
+}
 
 # _clean_orphan — Hapus paket orphan, tapi jangan panggil paru tanpa argumen
 _clean_orphan() {
@@ -728,3 +750,6 @@ eval "$(starship init zsh)"
 
 # zsh-patina (syntax highlighting)
 (( $+commands[zsh-patina] )) && eval "$(zsh-patina activate)"
+
+# bun completions
+[ -s "/home/ryoukaii/.bun/_bun" ] && source "/home/ryoukaii/.bun/_bun"
