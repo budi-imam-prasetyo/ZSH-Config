@@ -258,6 +258,7 @@ alias ....='cd ../../..'
 alias -- -='cd -'
 
 alias esco='code ~/.config/espanso/match/base.yml'
+alias ncdu='sudo ncdu'
 
 # ── Sistem & Produktivitas ────────────────────────────────────────────────────
 
@@ -271,10 +272,11 @@ alias zreload='exec zsh'
 # Paket (paru)
 alias yay="paru"
 alias i="paru -S"
-alias rmpkg="paru -Rns"
-alias up="paru -Syu"
-alias s="paru -Ss"
-alias pinfo="paru -Si"        # `info` bentrok dgn /usr/bin/info (texinfo)
+alias Rns="paru -Rns"
+alias Syu="paru -Syu"
+alias Ss="paru -Ss"
+alias Qs="paru -Qs"
+alias Si="paru -Si"
 alias orphan="paru -Qdt"
 alias clean-cache="paru -Sc"
 alias clean-cache-all="paru -Scc"
