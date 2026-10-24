@@ -13,10 +13,10 @@ ez() {
 
 alias ls='ez' ll='ez -lh --git' la='ez -la --git'
 alias lt='ez -T --level=2' lta='ez -Ta --level=2'
-alias ..='cd ..' ...='cd ../..' ....='cd ../../..' -- -='cd -'
-alias esco='code ~/.config/espanso/match/base.yml' ncdu='sudo ncdu'
+alias ..='cd ..' ...='cd ../..' ....='cd ../../..' -='cd -' d='cd /data'
+alias esco='zeditor ~/.config/espanso/match/base.yml' ncdu='sudo ncdu'
 alias c='printf "\033c"' q='exit'
-alias zconfig='code ~/ZSH-Config' zfast='fresh ~/ZSH-Config/.zshrc' zreload='exec zsh'
+alias zconfig='zeditor ~/ZSH-Config' zfast='fresh ~/ZSH-Config' zreload='exec zsh'
 alias yay='paru' i='paru -S' Rns='paru -Rns' Syu='paru -Syu'
 alias Ss='paru -Ss' Qs='paru -Qs' Si='paru -Si' orphan='paru -Qdt'
 alias clean-cache='paru -Sc' clean-cache-all='paru -Scc' clean-orphan='_clean_orphan'
