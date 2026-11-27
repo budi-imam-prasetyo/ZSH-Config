@@ -1,335 +1,234 @@
 # ⚡ ZSH Configuration for CachyOS
 
-> ✨ *Transform your CachyOS terminal into a productivity powerhouse.*
+A modular Zsh configuration that sources CachyOS's system configuration and adds custom aliases, completion, FZF settings, Git helpers, and optional tool integrations.
 
-Custom **`.zshrc`** configuration for developers who want a terminal that's:
+The entry point is [`.zshrc`](.zshrc). It loads the files in [`zsh/`](zsh/) in this order:
 
-* ⚡ **Blazing fast** with optimized loading
-* 🎯 **Minimal yet powerful** — essential tools only
-* 🔒 **Secure** with proper validation and error handling
-* 🧠 **Smart** with auto-detection and intelligent defaults
-* 🎨 **Beautiful** leveraging CachyOS's native theming
+| File | Purpose |
+|------|---------|
+| `00-base.zsh` | CachyOS base, environment, PATH, history, shell options |
+| `10-completion.zsh` | Completion cache, menu, matching, autosuggestion settings |
+| `20-keybindings.zsh` | Cursor movement, command editing, suggestion acceptance |
+| `30-fzf.zsh` | FZF appearance, preview, clipboard bindings |
+| `40-aliases.zsh` | Eza helper and command aliases |
+| `50-functions.zsh` | Git, compilation, file, and utility functions |
+| `60-hooks.zsh` | Directory listings and long-command notifications |
+| `70-integrations.zsh` | Optional tools and completion adapters |
+| `80-plugins.zsh` | Plugins, Starship, Atuin, optional Patina |
 
-Built on top of **CachyOS's system-wide config**, enhanced with **FNM**, **Bun**, **Zoxide**, **Eza**, **Atuin**, and powerful custom functions.
+## Requirements
 
----
+The configuration expects the following files and command to be available; these startup dependencies are loaded without availability checks:
 
-## 🎯 Philosophy
+- `/usr/share/cachyos-zsh-config/cachyos-config.zsh`
+- `/usr/share/doc/pkgfile/command-not-found.zsh`
+- `/usr/share/fzf/key-bindings.zsh`
+- `/usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh`
+- `starship`
 
-This configuration **extends** CachyOS's excellent base setup (`cachyos-config.zsh`) rather than replacing it. You get:
+Other tools are needed only for the features that use them:
 
-- ✅ CachyOS's optimized ZSH configuration
-- ✅ Beautiful theme and prompt via Starship
-- ✅ Essential plugins (git, fzf, extract, autosuggestions, syntax-highlighting, history-substring-search)
-- ✅ Custom aliases and functions for development
-- ✅ Smart history with deduplication and cross-session sync
-- ✅ Modern CLI tool integrations
+| Tool | Used by |
+|------|---------|
+| `eza` | Listing aliases and automatic listings after directory changes |
+| `paru` | Package aliases and orphan cleanup |
+| `git` | Git helpers and configuration backup |
+| `fd` | `rmnoext` |
+| `clang` with C23 support | `compile` |
+| GNU `time` or `gtime`, plus `awk` | `bench` |
+| `fresh` | Default editor, `f`, and `zfast` |
+| `zeditor` (Zed) | `zconfig` and `esco` |
+| `zellij` | Terminal session aliases |
+| `wl-copy` | `wl`, clipboard support in `githack`, and FZF |
+| `xclip` or `xsel` | FZF clipboard fallback when `wl-copy` is absent |
+| `aicommits` | `gaacp` and `zpush` without a manual message |
+| `ncdu` | `ncdu` alias, run through `sudo` |
+| `kitty` and `terax` at `/usr/bin/` | `t` |
+| `kitten` or `notify-send` | Notifications for commands lasting at least three seconds |
 
----
+FZF's default preview calls **`~/.local/bin/fzf-preview.sh`**, which is not included in this repository. Supply that script or change the preview setting in `zsh/30-fzf.zsh`. FZF also invokes `file` for its header and needs a version that supports the configured options.
 
-## 📦 What's Included
+Optional integrations are activated when their commands or files are found: FNM, Zoxide, Bun completion, Broot, OpenClaw completion, OpenCode completion, Atuin, and `zsh-patina`. Their installation and account/provider setup are separate from this repository.
 
-### 🔌 Plugins
-- **git** — Git shortcuts and intelligent status
-- **fzf** — Fuzzy finder (`Ctrl+R` history, `Ctrl+T` files)
-- **extract** — Universal archive extraction with `x`
-- **zsh-autosuggestions** — Fish-like autosuggestions from history
-- **zsh-syntax-highlighting** — Command syntax coloring
-- **zsh-history-substring-search** — History search with arrow keys
-- **pkgfile** — "Command not found" handler for Arch
+## Loading and customization
 
-### 🛠️ Modern CLI Tools
-- **eza** — Modern `ls` replacement with icons and git integration
-- **zoxide** — Smart directory jumper (`z` command, replaces `cd`)
-- **fnm** — Fast Node.js version manager
-- **bun** — Fast JavaScript runtime (optional)
-- **atuin** — Magical shell history with sync and search
-- **starship** — Cross-shell prompt
+Keep `.zshrc` and the `zsh/` directory together. `.zshrc` resolves its module directory from its own file path, so copying only `.zshrc` is insufficient.
 
-### ⚡ Custom Features
-- **C programming** helpers with Clang C23 integration
-- **Git workflow** shortcuts with SSH validation and offline detection
-- **AI commit messages** via `aicommits` integration (optional)
-- **Smart history** — 10,000 entries, synced across terminals, deduplicated
-- **Utility functions** with validation and error handling
+If this repository is at `~/ZSH-Config`, your existing `~/.zshrc` can source it with:
 
----
-
-## 🚀 Prerequisites
-
-### Required (Core System)
-```bash
-# CachyOS already provides these:
-# - ZSH
-# - cachyos-zsh-config
-# - Starship prompt
-```
-
-### Required (Modern CLI Tools)
-```bash
-sudo pacman -S eza zoxide fzf clang fd micro atuin
-```
-
-### Optional (Development Tools)
-```bash
-# Fast Node Manager
-curl -fsSL https://fnm.vercel.app/install | bash
-
-# Bun runtime
-curl -fsSL https://bun.sh/install | bash
-
-# AI commit messages (used by gaacp and zpush)
-npm install -g aicommits
-
-# Clipboard support for githack
-sudo pacman -S xclip
-
-```
-
----
-
-## 🎨 Features & Usage
-
-### 📁 File Navigation & Management
-
-#### Enhanced Directory Listing (Eza)
-```bash
-ls      # Listing with icons, directories first
-ll      # Detailed view with file sizes and git status
-la      # Show hidden files
-lt      # Tree view (2 levels deep)
-lta     # Tree view including hidden files
-```
-
-#### Quick Navigation
-```bash
-..      # Go up one directory
--       # Jump to previous directory
-
-mkcd myapp    # Create directory and cd into it
-```
-
-> **Note:** `cd` is aliased to `z` (zoxide) when zoxide is installed. Zoxide learns your habits and lets you jump to frequent directories by partial name. Falls back to standard `cd` if zoxide is not available.
-
-
-### 💻 Development Workflow
-
-#### C Programming
-```bash
-# Compile and run in one command
-compile program.c
-compile calculator.c 5 10    # With arguments
-```
-
-**Features:**
-- ✅ Clang availability check with install hint
-- ✅ Full compiler warnings (`-Wall -Wextra`)
-- ✅ C23 standard with optimization (`-O2`)
-- ✅ Output placed in `./bin/`
-- ✅ Cleanup on interrupt (Ctrl+C)
-
-#### Git Shortcuts
-```bash
-ga      # git add .
-gs      # git status (short format with branch)
-gl      # git log (last 15 commits, one line each)
-gd      # git diff
-```
-
-#### Git Workflow Functions
-
-**Quick commit only:**
-```bash
-gac "feat: add user authentication"
-# 1. git add .
-# 2. git commit -m "..."
-```
-
-**Quick commit & push:**
-```bash
-gacp "feat: add user authentication"
-# 1. Validates: not empty, is git repo, has changes
-# 2. Warns if using HTTPS instead of SSH
-# 3. git add .
-# 4. git commit -m "..."
-# 5. git push (only if online)
-```
-
-**AI-generated commit message:**
-```bash
-gaacp
-# 1. Validates: is git repo, has changes, aicommits installed
-# 2. aicommits (generates commit message + add + commit)
-# 3. git push (only if online)
-# Requires: npm install -g aicommits
-```
-
-**Backup your .zshrc:**
-```bash
-zpush "update: added new aliases"    # Manual message
-zpush                                # AI-generated message (requires aicommits)
-# 1. Validates: repo exists, has changes, not detached HEAD
-# 2. git add .
-# 3. git commit (manual or AI)
-# 4. Checks remote connectivity
-# 5. git push to origin
-```
-
-**Safety features in git functions:**
-- ✅ HTTPS vs SSH detection
-- ✅ Offline detection before push
-- ✅ Empty changes detection
-- ✅ Detached HEAD detection (zpush)
-- ✅ Explicit error messages
-
-### 🛠️ Utilities
-
-#### Remove Files Without Extension
-```bash
-rmnoext
-# Scans current directory for files without extension
-# Shows the list, asks for confirmation before deleting
-# Excludes: .git, node_modules, vendor
-# Shows "✅ Tidak ada file tanpa ekstensi" if none found
-```
-
-#### GitHub URL Converter
 ```zsh
-githack https://github.com/user/repo/blob/main/index.html
-# 🌐 https://raw.githack.com/user/repo/main/index.html
-# 📋 Copied to clipboard! (if xclip is installed)
-
-# Also works with raw.githubusercontent.com URLs
+source "$HOME/ZSH-Config/.zshrc"
 ```
 
-#### Benchmarking
-```bash
-bench npm run build        # Measure execution time
-bench ./my-script.sh
+Back up your existing configuration before replacing it. Edit aliases in `zsh/40-aliases.zsh`, functions in `zsh/50-functions.zsh`, and integrations in `zsh/70-integrations.zsh`.
+
+```zsh
+zconfig     # Open ~/ZSH-Config in Zed
+zfast       # Open ~/ZSH-Config in Fresh
+zreload     # Replace the current shell with a new Zsh session
 ```
 
-### ⚙️ System & Pacman
+These aliases and `zpush` use the fixed path `~/ZSH-Config`; adjust them if you keep the repository elsewhere.
 
-```bash
-update      # sudo pacman -Syu (full system update)
-cleanup     # Remove orphaned packages
-f           # Open Fresh editor
-wl          # Paste from clipboard (wl-copy <)
+## Listing and navigation
+
+| Command | Behavior |
+|---------|----------|
+| `ls` | `ez`: Eza with icons, directories first, automatic color |
+| `ll` | `ez -lh --git` |
+| `la` | `ez -la --git` |
+| `lt` | `ez -T --level=2` |
+| `lta` | `ez -Ta --level=2` |
+| `..`, `...`, `....` | Go up one, two, or three directories |
+| `-` | Return to the previous directory |
+| `d` | Change to `/data` |
+| `mkcd project` | Create a directory and enter it |
+
+`ez` applies `EZA_IGNORE` when an argument is exactly `-T` or `--tree`. With the current aliases, this applies to `lt`; the combined `-Ta` in `lta` does not trigger that check. The ignore list is `node_modules`, `vendor`, `dist`, `build`, `coverage`, `.git`, `.next`, `.nuxt`, and `target`.
+
+A `chpwd` hook also lists directories with Eza and that ignore list after directory changes.
+
+When Zoxide is installed, it is initialized with `--cmd cd`, providing the `cd` integration. The alias **`z` launches Zellij** in this configuration.
+
+## Package and system aliases
+
+| Alias | Expansion |
+|-------|-----------|
+| `yay` | `paru` |
+| `s` | `paru -S` |
+| `Rns` | `paru -Rns` |
+| `Syu` | `paru -Syu` |
+| `Syyu` | `paru -Syyu` |
+| `Ss` | `paru -Ss` |
+| `Qs` | `paru -Qs` |
+| `Si` | `paru -Si` |
+| `Qi` | `paru -Qi` |
+| `orphan` | `paru -Qdt` |
+| `clean-cache` | `paru -Sc` |
+| `clean-cache-all` | `paru -Scc` |
+| `clean-orphan` | `_clean_orphan`: list orphan packages, then run `paru -Rns` on them |
+| `jctl` | `journalctl -p 3 -xb` |
+| `ncdu` | `sudo ncdu` |
+| `wl` | `wl-copy <` — use `wl file.txt` to copy a file's contents |
+| `f` | `fresh` |
+| `esco` | `zeditor ~/.config/espanso/match/base.yml` |
+| `c` | `printf "\033c"` — reset the terminal |
+| `q` | `exit` |
+
+`reboot` first runs a systemctl dry run, asks for confirmation, then invokes `sudo systemctl reboot`.
+
+The repository does not define `update`, `cleanup`, or `zhelp`; any such commands must come from your system or other configuration.
+
+## Zellij aliases
+
+| Alias | Expansion |
+|-------|-----------|
+| `z` | `zellij` |
+| `za` | `zellij attach --create` |
+| `zls` | `zellij list-sessions` |
+| `zk` | `zellij kill-all-sessions` |
+| `zr` | `zellij run --` |
+| `ze` | `zellij edit` |
+
+## Custom functions
+
+### Git workflow
+
+```zsh
+gac "feat: add authentication"   # Stage all changes and commit
+gacp "feat: add authentication"  # Stage, commit, then attempt push
+gaacp                           # Run aicommits, then attempt push
+zpush "update aliases"          # Stage, commit, and push ~/ZSH-Config
+zpush                           # Same repository, using aicommits
 ```
 
-### ⚙️ Configuration
+- `gac` and `gacp` require a nonempty message, a Git repository, and local changes. Both stage with `git add -A`.
+- `gacp`, `gaacp`, and `zpush` reject detached HEAD. Only `gacp` prints a warning for an HTTPS `origin` URL; it does not validate SSH keys.
+- `gaacp` delegates commit creation to `aicommits`; `zpush` stages all changes before creating a manual or AI commit.
+- Push helpers check `origin` with `git ls-remote`, then push the current branch with upstream tracking. A failed check can indicate connectivity, authentication, or remote configuration problems.
+- If the remote check fails after committing, the local commit remains. `gacp` and `gaacp` print an offline notice; `zpush` returns an error with connection troubleshooting hints.
+- All three push helpers return early when there are no local changes, so they do not push existing unpushed commits in that case.
 
-```bash
-zconfig     # Open ~/ZSH-Config/ in VS Code
-zreload     # Reload ZSH configuration (exec zsh)
-zhelp       # Show command reference
-q           # Exit terminal
+Git aliases such as `ga`, `gs`, `gl`, and `gd` are not defined by this repository. Their availability depends on your system configuration.
+
+### Compile and run C
+
+```zsh
+compile program.c
+compile calculator.c 5 10
 ```
 
----
+`compile` checks for Clang and the input file, builds with `-O2 -Wall -Wextra -std=c23`, and runs `bin/<source-basename>` with any remaining arguments. Output is relative to the current directory. The function returns the program's exit status after a successful build; it does not implement cleanup on interrupt.
 
-## 🎯 Custom Functions Reference
+### File and URL utilities
 
-| Function | Usage | Description |
-|----------|-------|-------------|
-| `mkcd` | `mkcd project` | Create directory and cd into it |
-| `compile` | `compile file.c [args]` | Compile and run C program with Clang C23 |
-| `gac` | `gac "message"` | Git add and commit only |
-| `gacp` | `gacp "message"` | Git add, commit, and push with validation |
-| `gaacp` | `gaacp` | AI-generated commit message + push |
-| `zpush` | `zpush ["message"]` | Backup .zshrc to repo with detached HEAD check |
-| `githack` | `githack <url>` | Convert GitHub URL to CDN link |
-| `rmnoext` | `rmnoext` | Delete files without extension (with confirmation) |
-| `bench` | `bench command` | Benchmark execution time |
-| `zhelp` | `zhelp` | Show all custom commands |
+| Function | Usage | Behavior |
+|----------|-------|----------|
+| `rmnoext` | `rmnoext` | Recursively find files with extensionless names via `fd`, display the list, and ask before deletion |
+| `githack` | `githack <url>` | Convert GitHub blob or raw URLs to `raw.githack.com`, or pass through an existing CDN URL |
+| `bench` | `bench command [args...]` | Report elapsed, user, system, and combined CPU time using GNU time; preserve the command's exit status |
+| `t` | `t` | Start a login Zsh that opens Kitty running Terax in the current directory |
 
----
+`rmnoext` excludes `.git`, `node_modules`, and `vendor`, and uses `--no-ignore-vcs`. Files such as `Makefile`, `LICENSE`, `README`, and `Dockerfile` can be included; review its printed list before confirming.
 
-## 🔌 Complete Alias Reference
+`githack` copies the result only when `wl-copy` is available. Its clipboard implementation does not fall back to X11 tools.
 
-### Listing & Navigation
-| Alias | Command | Description |
-|-------|---------|-------------|
-| `ls` | `_eza` | Icons, directories first |
-| `ll` | `_eza -lh --git` | Detailed with git status |
-| `la` | `_eza -la --git` | Show hidden files |
-| `lt` | `_eza -T --level=2` | Tree view (2 levels) |
-| `lta` | `_eza -Ta --level=2` | Tree view with hidden |
-| `..` | `cd ..` | Go up one directory |
-| `-` | `cd -` | Previous directory |
+## Completion, keybindings, and FZF
 
+Completion uses a `.zcompdump` in `${ZDOTDIR:-$HOME}`. A dump modified within the last 24 hours is reused with `compinit -C`; otherwise normal `compinit` runs. Completion settings include menu selection, case-insensitive matching, grouped results, colors, and a cache under `${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompcache`.
 
-### System
-| Alias | Command | Description |
-|-------|---------|-------------|
-| `c` | `clear` | Clear terminal |
-| `q` | `exit` | Exit shell |
-| `update` | `sudo pacman -Syu` | System update |
-| `cleanup` | `sudo pacman -Rsn $(pacman -Qtdq)` | Remove orphans |
-| `wl` | `wl-copy <` | Wayland clipboard |
-| `f` | `fresh` | Fresh editor |
+Autosuggestions use history and completion, run asynchronously, and have a buffer size limit of 50 characters.
 
----
+| Binding | Configuration |
+|---------|---------------|
+| Left / Right | Move backward / forward by character |
+| Ctrl+Left / Ctrl+Right | Move backward / forward by word |
+| Ctrl+X, Ctrl+X | Edit the command line using `$EDITOR` |
+| Ctrl+Space | Accept an autosuggestion |
+| Ctrl+S | Unbound; terminal flow control is disabled when stdin is a terminal |
+| Ctrl+T | FZF file selection |
+| Alt+C | FZF directory selection |
+| Ctrl+R | FZF history binding, which later integrations such as Atuin may override |
 
-## ⚙️ Shell Options
+FZF uses a Catppuccin-style palette, a preview pane, and per-widget labels. Inside FZF, `Ctrl+/` cycles preview placement/visibility and `Ctrl+U` / `Ctrl+D` move by half a page. When a clipboard tool is found, Enter and double-click also copy the selected entries using FZF's selection file before accepting. Clipboard preference is `wl-copy`, then `xclip`, then `xsel`.
 
-This config sets the following ZSH options on top of the CachyOS defaults:
+## History and shell options
 
-### History
-| Option | Effect |
-|--------|--------|
-| `HISTSIZE=10000` | Keep 10,000 commands in memory per session |
-| `SAVEHIST=10000` | Persist 10,000 commands to `~/.zsh_history` |
-| `EXTENDED_HISTORY` | Write history in `:start:elapsed;command` format |
-| `SHARE_HISTORY` | Sync history across all open terminals in realtime |
-| `HIST_IGNORE_ALL_DUPS` | Remove old duplicate entries when a command is re-run |
-| `HIST_IGNORE_SPACE` | Don't record commands starting with space |
-| `HIST_FIND_NO_DUPS` | Skip duplicates when searching history with `Ctrl+R` |
-| `HIST_SAVE_NO_DUPS` | Don't write duplicate commands to history file |
-| `HIST_EXPIRE_DUPS_FIRST` | Expire duplicates first when trimming history |
-| `HIST_VERIFY` | Show history expansion before executing |
+| Setting | Value / effect |
+|---------|----------------|
+| `HISTFILE` | `~/.zsh_history` |
+| `HISTSIZE`, `SAVEHIST` | 50,000 entries each |
+| `EXTENDED_HISTORY` | Record timestamps and elapsed time |
+| `HIST_IGNORE_ALL_DUPS` | Remove older duplicate entries |
+| `HIST_IGNORE_SPACE` | Ignore commands starting with a space |
+| `HIST_FIND_NO_DUPS`, `HIST_SAVE_NO_DUPS` | Skip duplicates in history searches and when saving |
+| `HIST_VERIFY` | Allow review of history expansion before execution |
+| `AUTO_CD`, `AUTO_PUSHD`, `PUSHD_IGNORE_DUPS` | Directory navigation and stack behavior |
+| `MENU_COMPLETE` | Insert the first completion match |
+| `CORRECT`, `INTERACTIVE_COMMENTS` | Command correction and interactive comments |
 
-### Navigation
-| Option | Effect |
-|--------|--------|
-| `AUTO_CD` | Type a directory name to cd into it without typing `cd` |
-| `AUTO_PUSHD` | `cd` automatically pushes the old directory to the stack |
-| `PUSHD_IGNORE_DUPS` | Don't push duplicate directories to the stack |
+The modules do not explicitly enable `SHARE_HISTORY`, `HIST_EXPIRE_DUPS_FIRST`, or `AUTO_MENU`; their effective state can depend on inherited configuration. Cross-terminal history sync is not guaranteed by these modules. Atuin is initialized when installed; its bindings and sync behavior also depend on its own configuration and account setup.
 
-### Completion
-| Option | Effect |
-|--------|--------|
-| `AUTO_MENU` | Show completion menu on first Tab press |
-| `MENU_COMPLETE` | Auto-insert first match on Tab |
+## Plugin and integration loading
 
-### General
-| Option | Effect |
-|--------|--------|
-| `CORRECT` | Suggest typo corrections for mistyped commands |
-| `INTERACTIVE_COMMENTS` | Allow `#` comments in interactive shell |
+After the CachyOS base and the custom modules, `80-plugins.zsh` loads:
 
----
+1. Pkgfile's command-not-found handler.
+2. FZF keybindings and, if readable, its completion script.
+3. `zsh-autosuggestions`.
+4. Starship.
+5. Atuin's environment file, if readable, then Atuin initialization when available.
+6. `zsh-patina` activation when available.
+7. Bun completion, if present; it is also sourced in `70-integrations.zsh`.
 
-## 🔌 Plugin Loading Order
+The repository does not explicitly load Oh My Zsh's `git` or `extract` plugins, `zsh-syntax-highlighting`, or `zsh-history-substring-search`. Anything provided by the system-wide CachyOS file depends on that installed file. Later integrations can override earlier keybindings.
 
-```
-1. cachyos-config.zsh          # CachyOS base config
-2. pkgfile (command-not-found) # "Command not found" handler
-3. fzf keybindings             # Ctrl+R, Ctrl+T, Alt+C
-4. zsh-autosuggestions         # Fish-like suggestions
-5. zsh-syntax-highlighting     # Command coloring (MUST be after autosuggestions)
-6. zsh-history-substring-search # History search (MUST be last)
-```
+## Environment and PATH
 
-> ⚠️ Plugin order matters! Syntax highlighting must load after autosuggestions, and history-substring-search must be last.
+Existing directories from this list are prepended to PATH in order, with duplicates removed:
 
----
-
-## 🌍 Environment & PATH
-
-### PATH Entries
-```
-$JAVA_HOME/bin
+```text
+$JAVA_HOME/bin (when JAVA_HOME is set)
 $HOME/bin
 $HOME/.local/bin
 $HOME/.local/share/fnm
@@ -337,136 +236,22 @@ $HOME/.cargo/bin
 $HOME/.bun/bin
 $HOME/go/bin
 $HOME/.config/herd-lite/bin
+$HOME/.local/share/pnpm/bin
+$HOME/.opencode/bin
 ```
 
-### Environment Variables
-| Variable | Value | Purpose |
-|----------|-------|---------|
-| `MICRO_TRUECOLOR` | `1` | Enable true color in Micro editor |
-| `BAT_THEME` | `Catppuccin Mocha` | Theme for bat |
-| `PHP_INI_SCAN_DIR` | herd-lite path | PHP configuration |
-| `DOCKER_HOST` | podman socket | Podman compatibility |
+Integrations initialized later may also modify PATH. The local completion directory `~/.local/share/zsh/site-functions` is added to `fpath` when present.
 
-> Uses `typeset -U path` to prevent duplicate PATH entries automatically.
+| Variable | Value |
+|----------|-------|
+| `DOCKER_HOST` | `unix:///run/user/${UID}/podman/podman.sock` |
+| `PNPM_HOME` | `$HOME/.local/share/pnpm` |
+| `EDITOR` | `fresh` |
+| `MICRO_TRUECOLOR` | `1` |
+| `BAT_THEME` | `Catppuccin Mocha` |
 
----
+The configuration unsets `PROMPT_COMMAND` and initializes `dircolors` when available. It does not set `PHP_INI_SCAN_DIR` or start a Podman socket.
 
----
+## Command notifications
 
-## 🔧 Customization
-
-### Adding Custom Aliases
-```bash
-zconfig     # Open ~/ZSH-Config/ in VS Code
-
-# Add in the ALIASES section:
-alias myalias='command here'
-
-zreload     # Apply changes
-```
-
-### Adding Custom Functions
-```bash
-# Add in the FUNCTIONS section:
-myfunction() {
-  emulate -L zsh
-  # Your code here
-}
-```
-
----
-
-## 🐛 Troubleshooting
-
-### Commands Not Found
-
-| Issue | Solution |
-|-------|----------|
-| `eza: command not found` | `sudo pacman -S eza` |
-| `zoxide: command not found` | `sudo pacman -S zoxide` |
-| `fd: command not found` | `sudo pacman -S fd` |
-| `fnm: command not found` | `curl -fsSL https://fnm.vercel.app/install \| bash` |
-| `clang: command not found` | `sudo pacman -S clang` |
-| `aicommits: command not found` | `npm install -g aicommits` |
-| `xclip: command not found` | `sudo pacman -S xclip` |
-| `atuin: command not found` | `sudo pacman -S atuin` |
-
----
-
-## 💡 Tips & Tricks
-
-### Using Zoxide
-```bash
-# After visiting directories a few times:
-z docs      # Jump to ~/Documents
-z proj      # Jump to ~/Projects/my-project
-
-# cd is aliased to z when available, so just use cd normally
-```
-
-### FZF Power Features
-```bash
-Ctrl+R      # Fuzzy search command history
-Ctrl+T      # Fuzzy file finder
-Alt+C       # Fuzzy directory finder
-```
-
-### History Search
-With `SHARE_HISTORY` and `HIST_IGNORE_ALL_DUPS` active, `Ctrl+R` across multiple terminals shares a single clean history — no duplicates, no stale entries.
-
-### Offline Git Workflow
-`gacp` and `gaacp` check connectivity before pushing:
-```bash
-gacp "wip: working on feature"
-# If offline: commits locally, reminds you to push later
-# If online: commits and pushes in one shot
-```
-
-### Atuin History
-Atuin replaces your shell history with a SQLite database:
-```bash
-# Search history with Up arrow (configured by atuin init)
-# Sync across machines with atuin account
-```
-
----
-
-## 🎓 Learning Resources
-
-- [ZSH Documentation](http://zsh.sourceforge.net/Doc/)
-- [CachyOS Wiki](https://wiki.cachyos.org/)
-- [Eza GitHub](https://github.com/eza-community/eza)
-- [Zoxide GitHub](https://github.com/ajeetdsouza/zoxide)
-- [FZF Documentation](https://github.com/junegunn/fzf)
-- [FNM Documentation](https://github.com/Schniz/fnm)
-- [Starship Prompt](https://starship.rs/)
-- [Atuin GitHub](https://github.com/atuinsh/atuin)
-- [Aicommits GitHub](https://github.com/Nutlope/aicommits)
-
----
-
----
-
-## 🙏 Acknowledgments
-
-- **CachyOS Team** — For the excellent base ZSH configuration
-- **Oh-My-Zsh Community** — For the plugin ecosystem
-- **Eza / Zoxide / FNM / Atuin Authors** — For modern CLI tools
-- **Starship** — For the beautiful cross-shell prompt
-
----
-
-## 📄 License
-
-MIT License — Feel free to use, modify, and distribute.
-
----
-
-## 🧑‍💻 Author
-
-**Ryoukaii**
-🐧 CachyOS Enthusiast • ⚡ Performance Optimizer • 🛠️ Fullstack Developer
-
-> *"A well-configured terminal is a developer's best friend. Keep it fast, clean, and powerful."*
-
----
+Commands lasting at least three seconds trigger a success or failure notification, including duration and working directory. Exit status 130 suppresses the notification. In Kitty, the hook prefers `kitten notify` when available; otherwise it uses `notify-send`. If neither backend is available, no notification is sent.
